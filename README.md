@@ -1,12 +1,12 @@
-# SteamlessControllerDSU 🎮
+# SteamlessController DSU Server 🎮
 
-[![GitHub release](https://img.shields.io/github/v/release/YOUR_USERNAME/SteamlessControllerDSU?style=flat-square&color=blue)](https://github.com/YOUR_USERNAME/SteamlessControllerDSU/releases/latest)
-[![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011%20(x64)-informational?style=flat-square)](https://github.com/YOUR_USERNAME/SteamlessControllerDSU)
+[![GitHub release](https://img.shields.io/github/v/release/ZaydelJmz/SteamlessDSUServer?style=flat-square&color=blue)](https://github.com/ZaydelJmz/SteamlessDSUServer/releases/latest)
+[![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011%20(x64)-informational?style=flat-square)](https://github.com/ZaydelJmz/SteamlessDSUServer)
 [![License](https://img.shields.io/badge/License-GPLv3-green?style=flat-square)](LICENSE)
 
 A standalone driver and input wrapper for the **Valve Steam Controller** on Windows that operates **without the Steam client running**.
 
-**SteamlessControllerDSU** emulates standard gamepads (**Xbox 360**, **PlayStation 4**, and **Nintendo Switch Pro**) and features an **integrated Cemuhook DSU motion server** (`127.0.0.1:26760`) for instant motion aiming in modern emulators.
+**SteamlessController DSU Server** emulates standard gamepads (**Xbox 360**, **PlayStation 4**, and **Nintendo Switch Pro**) and features an **integrated Cemuhook DSU motion server** (`127.0.0.1:26760`) for native gyro aiming in modern emulators.
 
 ---
 
@@ -44,14 +44,14 @@ A standalone driver and input wrapper for the **Valve Steam Controller** on Wind
 * **[Viiper](https://github.com/Viiper/Viiper)** (for Nintendo Switch Pro emulation)
 * Visual C++ 2015–2022 Redistributable (x64)
 
-> 💡 **Quick Install**: An automated installer script (`Instalar requisitos.cmd`) is included in the release zip to download and install all missing drivers with one click.
+> 💡 **Quick Install**: An automated installer script (`Instalar requisitos.cmd`) is included in the release package to download and install all missing drivers with one click.
 
 ---
 
 ### 2. Getting Started
 
-1. Download **`SteamlessControllerDSU.zip`** from the [Latest Release](https://github.com/YOUR_USERNAME/SteamlessControllerDSU/releases/latest).
-2. Extract the folder to your preferred location (e.g. `C:\Games\SteamlessControllerDSU`).
+1. Download **`SteamlessDSUServer.zip`** from the [Latest Release](https://github.com/ZaydelJmz/SteamlessDSUServer/releases/latest).
+2. Extract the folder to your preferred location (e.g. `C:\Games\SteamlessDSUServer`).
 3. If running for the first time, right-click **`Instalar requisitos.cmd`** and select **"Run as administrator"**.
 4. Connect your Steam Controller and launch **`SteamlessController.exe`**.
 5. The application will minimize to your system tray. Right-click the tray icon to switch profiles or toggle emulation.
@@ -83,11 +83,11 @@ Slot      : 0          (or Auto-detect)
 
 <br>
 
-## SteamlessControllerDSU 🎮
+## SteamlessController DSU Server 🎮
 
 Controlador independiente para el **Valve Steam Controller** en Windows que funciona **sin necesidad de abrir Steam**.
 
-**SteamlessControllerDSU** emula mandos estándar (**Xbox 360**, **PlayStation 4** y **Nintendo Switch Pro**) e integra un **servidor de movimiento Cemuhook DSU** (`127.0.0.1:26760`) para apuntar con el giroscopio en emuladores modernos de forma nativa.
+**SteamlessController DSU Server** emula mandos estándar (**Xbox 360**, **PlayStation 4** y **Nintendo Switch Pro**) e integra un **servidor de movimiento Cemuhook DSU** (`127.0.0.1:26760`) para apuntar con el giroscopio en emuladores modernos de forma nativa.
 
 ---
 
@@ -118,7 +118,21 @@ Controlador independiente para el **Valve Steam Controller** en Windows que func
 
 ### 📥 Instalación y Uso Rápido
 
-1. Descarga **`SteamlessControllerDSU.zip`** desde la sección de [Releases](https://github.com/YOUR_USERNAME/SteamlessControllerDSU/releases/latest).
+1. Descarga **`SteamlessDSUServer.zip`** desde la sección de [Releases](https://github.com/ZaydelJmz/SteamlessDSUServer/releases/latest).
 2. Descomprime la carpeta donde prefieras.
 3. Si es tu primera vez, haz clic derecho sobre **`Instalar requisitos.cmd`** y elige **"Ejecutar como administrador"** (descargará e instalará automáticamente ViGEmBus, Viiper y VCRedist).
-4. Conecta tu Steam Controller (cable USB
+4. Conecta tu Steam Controller (cable USB o receptor inalámbrico) y abre **`SteamlessController.exe`**.
+5. El programa se iniciará en la bandeja del sistema (junto al reloj de Windows). Haz clic derecho en su icono para cambiar de modo o configurar perfiles.
+
+---
+
+### ⚙️ Configurar Giroscopio en Emuladores
+
+```text
+Protocolo : Cemuhook / DSU Client
+IP        : 127.0.0.1  (o localhost)
+Puerto    : 26760
+Slot      : 0          (o Automático)
+```
+
+</details>
