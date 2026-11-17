@@ -4,6 +4,8 @@
 [![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011%20(x64)-informational?style=flat-square)](https://github.com/ZaydelJmz/SteamlessDSUServer)
 [![License](https://img.shields.io/badge/License-GPLv3-green?style=flat-square)](LICENSE)
 
+> **Notice:** This project is an enhanced standalone fork based on the original [SteamlessController](https://github.com/ddeverill/SteamlessController) by **ddeverill**, extending it with a native Cemuhook DSU motion server, Nintendo Switch Pro emulation, and full haptics.
+
 A standalone driver and input wrapper for the **Valve Steam Controller** on Windows that operates **without the Steam client running**.
 
 **SteamlessController DSU Server** emulates standard gamepads (**Xbox 360**, **PlayStation 4**, and **Nintendo Switch Pro**) and features an **integrated Cemuhook DSU motion server** (`127.0.0.1:26760`) for native gyro aiming in modern emulators.
@@ -14,7 +16,7 @@ A standalone driver and input wrapper for the **Valve Steam Controller** on Wind
 
 * 🌐 **Built-in Cemuhook DSU Motion Server (`127.0.0.1:26760`)**
   * Direct UDP motion streaming for gyro aiming in emulators (**Ryujinx, Yuzu, Cemu, Dolphin, PCSX2, RPCS3, Citra**).
-  * No external wrapper apps (like BetterJoy or JoyShockMapper) required.
+  * No external bridge apps (such as BetterJoy or JoyShockMapper) required.
 
 * 🕹️ **Three Emulated Controller Modes with Instant Hot-Swapping**
   * **Xbox 360** (via ViGEmBus): Maximum compatibility with PC games.
@@ -78,12 +80,29 @@ Slot      : 0          (or Auto-detect)
 
 ---
 
+## 🙏 Credits & Acknowledgments
+
+* **[ddeverill/SteamlessController](https://github.com/ddeverill/SteamlessController)**: The original standalone Steam Controller utility that this project builds upon.
+* **[Viiper](https://github.com/Viiper/Viiper)**: Virtual gamepad emulation framework powering native Nintendo Switch Pro support.
+* **[ViGEmBus](https://github.com/nefarius/ViGEmBus)**: Virtual Gamepad Emulation Framework by Nefarius for Xbox 360 and DualShock 4 emulation.
+* **[Cemuhook](https://cemuhook.sshnuke.net/)**: The open DSU UDP motion protocol specification.
+
+---
+
+## 📄 License
+
+This project is licensed under the **GNU General Public License v3.0 (GPLv3)** — see the [LICENSE](LICENSE) file for details.
+
+---
+
 <details>
 <summary><b>▶ 🇪🇸 Versión en Español (Haz clic aquí para expandir)</b></summary>
 
 <br>
 
 ## SteamlessController DSU Server 🎮
+
+> **Aviso:** Este proyecto es un fork independiente basado en el [SteamlessController](https://github.com/ddeverill/SteamlessController) original de **ddeverill**, ampliándolo con un servidor de movimiento Cemuhook DSU integrado, emulación de Nintendo Switch Pro y vibración háptica completa.
 
 Controlador independiente para el **Valve Steam Controller** en Windows que funciona **sin necesidad de abrir Steam**.
 
@@ -95,12 +114,12 @@ Controlador independiente para el **Valve Steam Controller** en Windows que func
 
 * 🌐 **Servidor de Movimiento Cemuhook DSU Integrado (`127.0.0.1:26760`)**
   * Transmisión directa por UDP de acelerómetro y giroscopio para emuladores (**Ryujinx, Yuzu, Cemu, Dolphin, PCSX2, RPCS3, Citra**).
-  * Sin necesidad de software puente adicional como BetterJoy o JoyShockMapper.
+  * Sin necesidad de programas puente externos como BetterJoy o JoyShockMapper.
 
 * 🕹️ **Tres Modos de Emulación con Cambio en Caliente (0 ms)**
   * **Xbox 360** (vía ViGEmBus): Máxima compatibilidad con juegos de PC.
   * **DualShock 4** (vía ViGEmBus): Soporte de barra de luz y panel táctil.
-  * **Nintendo Switch Pro** (vía Viiper): Emulación nativa de mando Switch Pro con reporte de batería y botones `Captura` y `Home`.
+  * **Nintendo Switch Pro** (vía Viiper): Emulación nativa de Switch Pro con reporte de batería y botones `Captura` y `Home`.
   * **Cambio instantáneo**: Alterna entre modos desde el icono de la bandeja del sistema sin desconectar el mando ni reiniciar tus juegos.
 
 * 📳 **Vibración Háptica Completa en los 3 Modos**
@@ -134,5 +153,14 @@ IP        : 127.0.0.1  (o localhost)
 Puerto    : 26760
 Slot      : 0          (o Automático)
 ```
+
+---
+
+### 🙏 Créditos y Reconocimientos
+
+* **[ddeverill/SteamlessController](https://github.com/ddeverill/SteamlessController)**: El proyecto original sobre el cual se basa esta versión.
+* **[Viiper](https://github.com/Viiper/Viiper)**: Framework de emulación que hace posible el soporte nativo de Nintendo Switch Pro.
+* **[ViGEmBus](https://github.com/nefarius/ViGEmBus)**: Driver de Nefarius para la emulación de mandos Xbox 360 y DualShock 4.
+* **[Cemuhook](https://cemuhook.sshnuke.net/)**: Especificación del protocolo DSU sobre UDP.
 
 </details>
