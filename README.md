@@ -1,90 +1,124 @@
-# 🎮 SteamlessController + Switch Pro & Gyro DSU
+# SteamlessControllerDSU 🎮
 
-[![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%2F%2011%20x64-blue.svg)](https://github.com/)
-[![License: MIT / GPLv3](https://img.shields.io/badge/License-MIT%20%2F%20GPLv3-green.svg)](LICENSE)
-[![Release](https://img.shields.io/badge/Release-v1.0.0--NS-orange.svg)](https://github.com/)
+[![GitHub release](https://img.shields.io/github/v/release/YOUR_USERNAME/SteamlessControllerDSU?style=flat-square&color=blue)](https://github.com/YOUR_USERNAME/SteamlessControllerDSU/releases/latest)
+[![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011%20(x64)-informational?style=flat-square)](https://github.com/YOUR_USERNAME/SteamlessControllerDSU)
+[![License](https://img.shields.io/badge/License-GPLv3-green?style=flat-square)](LICENSE)
 
-A modern, enhanced fork of **[SteamlessController](https://github.com/ddeverill/SteamlessController)** adding native **Nintendo Switch Pro Controller emulation** (with motion and HD Rumble), an **embedded Cemuhook DSU motion server**, and seamless hot-swapping between controller modes.
+A standalone driver and input wrapper for the **Valve Steam Controller** on Windows that operates **without the Steam client running**.
 
-Use your physical Steam Controller as a native gamepad on PC emulators and non-Steam games without running Steam in the background and without third-party scripts.
-
----
-
-## ✨ Features
-
-- 🎯 **3 Virtual Controller Modes**:
-  - **Nintendo Switch Pro Controller**: Native emulation via VIIPER USB driver. Full native 6-axis IMU gyro and HD Rumble conversion straight into emulators like Ryujinx, Cemu, Liichi, and Yuzu.
-  - **Sony DualShock 4**: Native gyro, touchpad navigation, and dual-motor rumble via ViGEmBus.
-  - **Xbox 360**: Universal XInput compatibility with custom haptic rumble curves adapted to Steam Controller LRA actuators.
-- 📡 **Built-in Cemuhook DSU Server (`127.0.0.1:26760`)**:
-  - Motion streaming is integrated directly inside the executable. **No need to run `sc2gyrodsu.exe` or background PowerShell scripts!**
-  - **Smart auto-switching**:
-    - **Xbox 360 Mode**: DSU streams active motion data to `127.0.0.1:26760` simultaneously while delivering XInput buttons.
-    - **Desktop / Lizard Mode (Steamless OFF)**: Streams gyro motion in the background while leaving desktop mouse/keyboard hardware untouched.
-    - **Switch Pro / PS4 Modes**: DSU motion automatically pauses to prioritize native driver gyro and prevent input overlaps.
-- ⚡ **Seamless Hot-Swapping**:
-  - Change controller platforms on the fly without disconnecting the physical controller or causing driver stalls.
-- 🖱️ **Full Desktop & Trackpad Control**:
-  - Customizable trackpads (mouse pointer, directional pad, scroll wheel, joystick).
-  - Back-grip paddles binding and per-game auto profiles.
-- 🛠️ **1-Click Safe Prerequisite Installer**:
-  - Automated PowerShell script that verifies and installs ViGEmBus, compatible `usbip-win2`, and VC++ runtimes with official SHA-256 checks.
+**SteamlessControllerDSU** emulates standard gamepads (**Xbox 360**, **PlayStation 4**, and **Nintendo Switch Pro**) and features an **integrated Cemuhook DSU motion server** (`127.0.0.1:26760`) for instant motion aiming in modern emulators.
 
 ---
 
-## 🚀 Quick Start
+## 🌟 Key Features
+
+* 🌐 **Built-in Cemuhook DSU Motion Server (`127.0.0.1:26760`)**
+  * Direct UDP motion streaming for gyro aiming in emulators (**Ryujinx, Yuzu, Cemu, Dolphin, PCSX2, RPCS3, Citra**).
+  * No external wrapper apps (like BetterJoy or JoyShockMapper) required.
+
+* 🕹️ **Three Emulated Controller Modes with Instant Hot-Swapping**
+  * **Xbox 360** (via ViGEmBus): Maximum compatibility with PC games.
+  * **DualShock 4** (via ViGEmBus): PS4 gamepad emulation with touchpad click and lightbar support.
+  * **Nintendo Switch Pro** (via Viiper): Native Switch Pro emulation with real-time battery status and system buttons (`Capture` & `Home`).
+  * **Zero-delay hot-swapping**: Switch controller types on the fly from the system tray menu without reconnecting or interrupting games.
+
+* 📳 **Full Haptic Rumble Across All Modes**
+  * Advanced translation of dual-motor rumble and **Nintendo HD Rumble** frequency envelopes into realistic tactile waveforms on the Steam Controller's dual linear resonant actuators (LRA).
+
+* 🧠 **Smart Steam Integration**
+  * **Off only while in Steam game**: Use your Steam Controller on the desktop while Steam runs in the background. It automatically pauses only when a Steam game launches (`gameoverlayui.exe`) to prevent double-input conflicts.
+  * Also supports *Off when Steam is running* and *Always on*.
+
+* 🎯 **Desktop Controls & Auto-Profiles**
+  * Smooth mouse trackball emulation on the right trackpad with haptic feedback.
+  * Per-game profile switching based on the active foreground application.
+
+---
+
+## 📥 Installation & Setup
 
 ### 1. Requirements
-- Windows 10 or 11 (64-bit)
-- Official Steam Controller (Wireless Dongle or USB Cable)
+* Windows 10 or 11 (64-bit)
+* Steam Controller (connected via original USB Cable or Wireless Receiver Dongle)
+* **[ViGEmBus](https://github.com/nefarius/ViGEmBus)** (for Xbox 360 & DualShock 4 emulation)
+* **[Viiper](https://github.com/Viiper/Viiper)** (for Nintendo Switch Pro emulation)
+* Visual C++ 2015–2022 Redistributable (x64)
 
-### 2. Installation
-1. Go to **[Releases](../../releases)** and download `SteamlessController-NS.zip`.
-2. Extract the folder anywhere on your PC (e.g. `C:\Programs\SteamlessController-NS`).
-3. Right-click **`Instalar requisitos.cmd`** and select **Run as Administrator**.
-   - It will automatically download and install *ViGEmBus*, *usbip-win2 (v0.9.7.7)*, and *Visual C++ Redistributable* only if missing.
-4. **Reboot your PC** (required for virtual USB drivers to load).
-5. Run **`SteamlessController.exe`**. The app will live in your Windows system tray.
+> 💡 **Quick Install**: An automated installer script (`Instalar requisitos.cmd`) is included in the release zip to download and install all missing drivers with one click.
 
 ---
 
-## 🎯 Gyro & Motion Guide for Emulators
+### 2. Getting Started
 
-| Target Mode in Steamless | Gyro in Emulators (Ryujinx, Cemu, Dolphin, etc.) | Setup Needed |
-| :--- | :--- | :--- |
-| **Nintendo Switch Pro** | **Native Hardware Gyro** | None. In the emulator, select "Nintendo Switch Pro Controller" as an SDL/DirectInput device. Motion works out of the box. |
-| **PlayStation 4 (DS4)** | **Native DS4 Gyro** | None. Select "DualShock 4" input in emulator settings. |
-| **Xbox 360** | **Cemuhook DSU Server** | In emulator Motion settings, add DSU server: `127.0.0.1:26760`. |
-| **Steamless Mode OFF** | **Cemuhook DSU Server** | Same as above. Steam Controller functions as desktop mouse while streaming gyro to `127.0.0.1:26760`. |
+1. Download **`SteamlessControllerDSU.zip`** from the [Latest Release](https://github.com/YOUR_USERNAME/SteamlessControllerDSU/releases/latest).
+2. Extract the folder to your preferred location (e.g. `C:\Games\SteamlessControllerDSU`).
+3. If running for the first time, right-click **`Instalar requisitos.cmd`** and select **"Run as administrator"**.
+4. Connect your Steam Controller and launch **`SteamlessController.exe`**.
+5. The application will minimize to your system tray. Right-click the tray icon to switch profiles or toggle emulation.
 
 ---
 
-## 📂 Project Structure
+## ⚙️ Emulator Motion Setup (DSU)
+
+To use gyro aiming in your emulators:
 
 ```text
-SteamlessController-NS/
-├── SteamlessController.exe      # Main GUI & embedded DSU Cemuhook server
-├── viiper.exe                   # Virtual Switch Pro sidecar server (VIIPER v0.6.1-steamless8)
-├── SteamlessDeviceCycle.exe     # PnP device reclamation helper
-├── ViGEmBusProbe.exe            # Driver integrity diagnostic probe
-├── Instalar requisitos.cmd      # 1-click prerequisite installer
-├── install-prereqs.ps1          # Cryptographically verified driver installer script
-└── LEEME.txt                    # Documentation & user manual (Spanish)
+Protocol  : Cemuhook / DSU Client
+Server IP : 127.0.0.1  (or localhost)
+Port      : 26760
+Slot      : 0          (or Auto-detect)
 ```
 
----
-
-## 🤝 Credits & Acknowledgments
-
-- **[ddeverill/SteamlessController](https://github.com/ddeverill/SteamlessController)**: The original SteamlessController project.
-- **[Alia5/VIIPER](https://github.com/Alia5/VIIPER)**: Virtual USB device sidecar providing the Switch Pro emulation layer.
-- **[Nefarius](https://github.com/nefarius/ViGEmBus)**: ViGEmBus virtual gamepad framework.
-- **[Cemuhook](https://cemuhook.sshnuke.net/)**: Cemuhook UDP DSU motion protocol.
-- **[SteamController2GyroDSU-Win](https://github.com/Visualtaggy/SteamController2GyroDSU-Win)**: Gyro mapping and calibration reference.
+| Emulator | Where to configure |
+| :--- | :--- |
+| **Ryujinx** | `Options` ➔ `Settings` ➔ `Input` ➔ Enable Motion ➔ `DSU Client` (`127.0.0.1:26760`) |
+| **Cemu** | `Options` ➔ `GamePad motion source` ➔ `DSU1` ➔ By slot |
+| **Dolphin** | `Controllers` ➔ `Motion Sources` ➔ Add `127.0.0.1:26760` |
+| **PCSX2** | `Settings` ➔ `Controllers` ➔ `Motion` ➔ `Enable DSU Motion Server` |
 
 ---
 
-## 📜 License
+<details>
+<summary><b>▶ 🇪🇸 Versión en Español (Haz clic aquí para expandir)</b></summary>
 
-- SteamlessController code is licensed under the [MIT License](LICENSE).
-- `viiper.exe` and its patches are licensed under the [GNU General Public License v3.0](VIIPER-LICENSE.txt).
+<br>
+
+## SteamlessControllerDSU 🎮
+
+Controlador independiente para el **Valve Steam Controller** en Windows que funciona **sin necesidad de abrir Steam**.
+
+**SteamlessControllerDSU** emula mandos estándar (**Xbox 360**, **PlayStation 4** y **Nintendo Switch Pro**) e integra un **servidor de movimiento Cemuhook DSU** (`127.0.0.1:26760`) para apuntar con el giroscopio en emuladores modernos de forma nativa.
+
+---
+
+### 🌟 Características Principales
+
+* 🌐 **Servidor de Movimiento Cemuhook DSU Integrado (`127.0.0.1:26760`)**
+  * Transmisión directa por UDP de acelerómetro y giroscopio para emuladores (**Ryujinx, Yuzu, Cemu, Dolphin, PCSX2, RPCS3, Citra**).
+  * Sin necesidad de software puente adicional como BetterJoy o JoyShockMapper.
+
+* 🕹️ **Tres Modos de Emulación con Cambio en Caliente (0 ms)**
+  * **Xbox 360** (vía ViGEmBus): Máxima compatibilidad con juegos de PC.
+  * **DualShock 4** (vía ViGEmBus): Soporte de barra de luz y panel táctil.
+  * **Nintendo Switch Pro** (vía Viiper): Emulación nativa de mando Switch Pro con reporte de batería y botones `Captura` y `Home`.
+  * **Cambio instantáneo**: Alterna entre modos desde el icono de la bandeja del sistema sin desconectar el mando ni reiniciar tus juegos.
+
+* 📳 **Vibración Háptica Completa en los 3 Modos**
+  * Conversión avanzada de vibración de dos motores y del **HD Rumble** de Nintendo a ondas táctiles mediante los actuadores LRA del Steam Controller.
+
+* 🧠 **Detección Inteligente de Steam**
+  * **Off only while in Steam game**: Usa el mando en el escritorio mientras Steam está abierto en segundo plano. Solo se pausa automáticamente cuando se ejecuta un juego de Steam (`gameoverlayui.exe`) para evitar dobles entradas.
+  * También disponible: *Off when Steam is running* y *Always on*.
+
+* 🎯 **Modo Escritorio y Perfiles Automáticos**
+  * Emulación de trackball en el trackpad derecho para mover el ratón con retroalimentación háptica.
+  * Cambio automático de perfiles según la aplicación o juego en primer plano.
+
+---
+
+### 📥 Instalación y Uso Rápido
+
+1. Descarga **`SteamlessControllerDSU.zip`** desde la sección de [Releases](https://github.com/YOUR_USERNAME/SteamlessControllerDSU/releases/latest).
+2. Descomprime la carpeta donde prefieras.
+3. Si es tu primera vez, haz clic derecho sobre **`Instalar requisitos.cmd`** y elige **"Ejecutar como administrador"** (descargará e instalará automáticamente ViGEmBus, Viiper y VCRedist).
+4. Conecta tu Steam Controller (cable USB
