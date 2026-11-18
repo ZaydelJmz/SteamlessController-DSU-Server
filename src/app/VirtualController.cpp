@@ -1,9 +1,11 @@
 #include "VirtualController.h"
 #include "StickConfig.h"
 #include "ViGEmBusInfo.h"
+#include "ViiperClient.h"
 #include "steam/SteamController.h"
 #include <ViGEm/Client.h>
 #include <algorithm>
+#include <array>
 #include <atomic>
 #include <chrono>
 #include <cstdio>
@@ -168,6 +170,25 @@ static void SetDs4DPad(USHORT& wButtons, DS4_DPAD_DIRECTIONS dir) {
 VirtualController::VirtualController(ControllerPlatform platform, RumbleCallback rumbleCallback)
     : m_platform(platform), m_rumbleCallback(std::move(rumbleCallback))
 {
+    if (m_platform == ControllerPlatform::Switch || m_platform == ControllerPlatform::DualSense) {
+        m_viiper = std::make_unique<ViiperClient>();
+        const char* type = (m_platform == ControllerPlatform::Switch) ? "nspro" : "dualsense";
+        m_valid = m_viiper->Open(type, [this](const uint8_t* left, const uint8_t* right, uint8_t) {
+            uint8_t l = left ? left[0] : 0;
+            uint8_t r = right ? right[0] : 0;
+            OnRumble(l, r);
+        });
+        if (!m_valid) {
+            m_failStage = "viiper_open";
+            m_lastError = 0;
+            m_driverMissing = m_viiper->Unsupported();
+            printf("[VIIPER] Failed to open virtual %s controller: %ls\n", type, m_viiper->LastError());
+            return;
+        }
+        printf("[VIIPER] Virtual %s controller connected\n", type);
+        return;
+    }
+
     m_client = vigem_alloc();
     if (!m_client) {
         m_failStage = "vigem_alloc";
@@ -237,6 +258,10 @@ VirtualController::VirtualController(ControllerPlatform platform, RumbleCallback
 }
 
 VirtualController::~VirtualController() {
+    if (m_viiper) {
+        m_viiper->Close();
+        m_viiper.reset();
+    }
     StopDs4OutputThread();
 
     if (m_target && m_platform == ControllerPlatform::Xbox)
@@ -341,7 +366,271 @@ void VirtualController::Update(const uint8_t* buf, size_t n,
         if (resolved.rightTriggerFull) apply(profile.rightTrigger.EffectiveFull());
     };
 
-    if (m_platform == ControllerPlatform::PlayStation) {
+    if (m_platform == ControllerPlatform::Switch && m_viiper) {
+        std::array<uint8_t, 24> pkt{};
+        uint32_t btns = 0;
+
+        const StickPos ls = ReadStick(buf + 10, profile.leftStick);
+        const StickPos rs = ReadStick(buf + 14, profile.rightStick);
+        auto toSwitchStick = [](int16_t raw) -> uint16_t {
+            const int64_t v = static_cast<int64_t>(raw) + 32768;
+            return static_cast<uint16_t>(std::clamp<int>(static_cast<int>((v * 4096) / 65536), 0, 4095));
+        };
+        const uint16_t lsX = toSwitchStick(ls.x);
+        const uint16_t lsY = toSwitchStick(ls.y);
+        const uint16_t rsX = toSwitchStick(rs.x);
+        const uint16_t rsY = toSwitchStick(rs.y);
+
+        if (n >= 4) {
+            const uint8_t b0 = buf[2];
+            const uint8_t b1 = buf[3];
+            const uint8_t b2 = buf[4];
+
+            constexpr uint32_t NS_B = 1u << 0;
+            constexpr uint32_t NS_A = 1u << 1;
+            constexpr uint32_t NS_Y = 1u << 2;
+            constexpr uint32_t NS_X = 1u << 3;
+            constexpr uint32_t NS_R = 1u << 4;
+            constexpr uint32_t NS_ZR = 1u << 5;
+            constexpr uint32_t NS_PLUS = 1u << 6;
+            constexpr uint32_t NS_RS = 1u << 7;
+            constexpr uint32_t NS_DOWN = 1u << 8;
+            constexpr uint32_t NS_RIGHT = 1u << 9;
+            constexpr uint32_t NS_LEFT = 1u << 10;
+            constexpr uint32_t NS_UP = 1u << 11;
+            constexpr uint32_t NS_L = 1u << 12;
+            constexpr uint32_t NS_ZL = 1u << 13;
+            constexpr uint32_t NS_MINUS = 1u << 14;
+            constexpr uint32_t NS_LS = 1u << 15;
+            constexpr uint32_t NS_HOME = 1u << 16;
+            constexpr uint32_t NS_CAPTURE = 1u << 17;
+
+            // Physical button positions on Nintendo:
+            // A (South) -> B, B (East) -> A, X (West) -> Y, Y (North) -> X
+            if (b0 & SteamController::BTN_A) btns |= NS_B;
+            if (b0 & SteamController::BTN_B) btns |= NS_A;
+            if (b0 & SteamController::BTN_X) btns |= NS_Y;
+            if (b0 & SteamController::BTN_Y) btns |= NS_X;
+            if (b2 & SteamController::BTN_LB) btns |= NS_L;
+            if (b1 & SteamController::BTN_RB) btns |= NS_R;
+            if (b1 & SteamController::BTN_VIEW) btns |= NS_MINUS;
+            if (b0 & SteamController::BTN_MENU) btns |= NS_PLUS;
+            if (b0 & SteamController::BTN_QAM) btns |= NS_CAPTURE;
+            if (b1 & SteamController::BTN_LS) btns |= NS_LS;
+            if (b0 & SteamController::BTN_RS) btns |= NS_RS;
+            if (b2 & SteamController::BTN_STEAM) btns |= NS_HOME;
+
+            if (b1 & SteamController::BTN_DPAD_UP) btns |= NS_UP;
+            if (b1 & SteamController::BTN_DPAD_DN) btns |= NS_DOWN;
+            if (b1 & SteamController::BTN_DPAD_LT) btns |= NS_LEFT;
+            if (b1 & SteamController::BTN_DPAD_RT) btns |= NS_RIGHT;
+
+            if (n >= 10) {
+                int16_t ltRaw = 0, rtRaw = 0;
+                memcpy(&ltRaw, buf + 6, 2);
+                memcpy(&rtRaw, buf + 8, 2);
+                if ((ltRaw >> 7) > 0) btns |= NS_ZL;
+                if ((rtRaw >> 7) > 0) btns |= NS_ZR;
+            }
+
+            auto applyBack = [&](const BackButtonBinding& binding) {
+                switch (binding.AsAction()) {
+                case BackButtonAction::A: btns |= NS_B; break;
+                case BackButtonAction::B: btns |= NS_A; break;
+                case BackButtonAction::X: btns |= NS_Y; break;
+                case BackButtonAction::Y: btns |= NS_X; break;
+                case BackButtonAction::LB: btns |= NS_L; break;
+                case BackButtonAction::RB: btns |= NS_R; break;
+                case BackButtonAction::LT: btns |= NS_ZL; break;
+                case BackButtonAction::RT: btns |= NS_ZR; break;
+                case BackButtonAction::DPadUp: btns |= NS_UP; break;
+                case BackButtonAction::DPadDown: btns |= NS_DOWN; break;
+                case BackButtonAction::DPadLeft: btns |= NS_LEFT; break;
+                case BackButtonAction::DPadRight: btns |= NS_RIGHT; break;
+                case BackButtonAction::Menu: btns |= NS_PLUS; break;
+                case BackButtonAction::View: btns |= NS_MINUS; break;
+                case BackButtonAction::L3: btns |= NS_LS; break;
+                case BackButtonAction::R3: btns |= NS_RS; break;
+                case BackButtonAction::Guide: btns |= NS_HOME; break;
+                default: break;
+                }
+            };
+            if (n > 4) {
+                if (buf[4] & SteamController::BTN_L4) applyBack(backCfg.l4);
+                if (buf[4] & SteamController::BTN_L5) applyBack(backCfg.l5);
+            }
+            if (n > 2) {
+                if (buf[2] & SteamController::BTN_R4) applyBack(backCfg.r4);
+                if (buf[2] & SteamController::BTN_QAM) applyBack(backCfg.qam);
+            }
+            if (n > 3) {
+                if (buf[3] & SteamController::BTN_R5) applyBack(backCfg.r5);
+            }
+            forEachPadBinding(applyBack);
+        }
+
+        memcpy(pkt.data(), &btns, 4);
+        memcpy(pkt.data() + 4, &lsX, 2);
+        memcpy(pkt.data() + 6, &lsY, 2);
+        memcpy(pkt.data() + 8, &rsX, 2);
+        memcpy(pkt.data() + 10, &rsY, 2);
+
+        int16_t accelX = 0, accelY = 0, accelZ = 0;
+        int16_t gyroX = 0, gyroY = 0, gyroZ = 0;
+        if (n >= 46) {
+            memcpy(&accelX, buf + 34, 2);
+            memcpy(&accelY, buf + 36, 2);
+            memcpy(&accelZ, buf + 38, 2);
+            memcpy(&gyroX, buf + 40, 2);
+            memcpy(&gyroY, buf + 42, 2);
+            memcpy(&gyroZ, buf + 44, 2);
+        }
+        memcpy(pkt.data() + 12, &accelX, 2);
+        memcpy(pkt.data() + 14, &accelY, 2);
+        memcpy(pkt.data() + 16, &accelZ, 2);
+        memcpy(pkt.data() + 18, &gyroX, 2);
+        memcpy(pkt.data() + 20, &gyroY, 2);
+        memcpy(pkt.data() + 22, &gyroZ, 2);
+
+        m_viiper->SendInput(pkt.data(), pkt.size());
+    } else if (m_platform == ControllerPlatform::DualSense && m_viiper) {
+        std::array<uint8_t, 33> pkt{};
+        const StickPos ls = ReadStick(buf + 10, profile.leftStick);
+        const StickPos rs = ReadStick(buf + 14, profile.rightStick);
+        pkt[0] = s16ToU8(ls.x);
+        pkt[1] = s16ToU8(NegI16(ls.y));
+        pkt[2] = s16ToU8(rs.x);
+        pkt[3] = s16ToU8(NegI16(rs.y));
+
+        int16_t ltRaw = 0, rtRaw = 0;
+        if (n >= 10) {
+            memcpy(&ltRaw, buf + 6, 2);
+            memcpy(&rtRaw, buf + 8, 2);
+        }
+        pkt[4] = static_cast<uint8_t>(std::clamp<int>(ltRaw >> 7, 0, 255));
+        pkt[5] = static_cast<uint8_t>(std::clamp<int>(rtRaw >> 7, 0, 255));
+
+        const bool leftToTouchpad  = profile.leftPad.FeedsDs4Touchpad();
+        const bool rightToTouchpad = profile.rightPad.FeedsDs4Touchpad();
+
+        uint8_t dpad = 0;
+        uint16_t btns = 0;
+        if (n >= 4) {
+            const uint8_t b0 = buf[2];
+            const uint8_t b1 = buf[3];
+            const uint8_t b2 = buf[4];
+            const uint8_t b3 = n > 5 ? buf[5] : 0;
+
+            if (b0 & SteamController::BTN_A) btns |= 0x0020; // Cross
+            if (b0 & SteamController::BTN_B) btns |= 0x0040; // Circle
+            if (b0 & SteamController::BTN_X) btns |= 0x0010; // Square
+            if (b0 & SteamController::BTN_Y) btns |= 0x0080; // Triangle
+            if (b2 & SteamController::BTN_LB) btns |= 0x0100; // L1
+            if (b1 & SteamController::BTN_RB) btns |= 0x0200; // R1
+            if (pkt[4] > 0) btns |= 0x0400; // L2
+            if (pkt[5] > 0) btns |= 0x0800; // R2
+            if (b1 & SteamController::BTN_VIEW) btns |= 0x1000; // Create
+            if (b0 & SteamController::BTN_MENU) btns |= 0x2000; // Options
+            if (b1 & SteamController::BTN_LS) btns |= 0x4000; // L3
+            if (b0 & SteamController::BTN_RS) btns |= 0x8000; // R3
+            if (b2 & SteamController::BTN_STEAM) btns |= 0x0001; // PS
+
+            if (b1 & SteamController::BTN_DPAD_UP) dpad |= 0x01;
+            if (b1 & SteamController::BTN_DPAD_DN) dpad |= 0x02;
+            if (b1 & SteamController::BTN_DPAD_LT) dpad |= 0x04;
+            if (b1 & SteamController::BTN_DPAD_RT) dpad |= 0x08;
+
+            auto applyBack = [&](const BackButtonBinding& binding) {
+                switch (binding.AsAction()) {
+                case BackButtonAction::A:             btns |= 0x0020; break;
+                case BackButtonAction::B:             btns |= 0x0040; break;
+                case BackButtonAction::X:             btns |= 0x0010; break;
+                case BackButtonAction::Y:             btns |= 0x0080; break;
+                case BackButtonAction::LB:            btns |= 0x0100; break;
+                case BackButtonAction::RB:            btns |= 0x0200; break;
+                case BackButtonAction::LT:            pkt[4] = 255; btns |= 0x0400; break;
+                case BackButtonAction::RT:            pkt[5] = 255; btns |= 0x0800; break;
+                case BackButtonAction::DPadUp:        dpad |= 0x01; break;
+                case BackButtonAction::DPadDown:      dpad |= 0x02; break;
+                case BackButtonAction::DPadLeft:      dpad |= 0x04; break;
+                case BackButtonAction::DPadRight:     dpad |= 0x08; break;
+                case BackButtonAction::Menu:          btns |= 0x2000; break;
+                case BackButtonAction::View:          btns |= 0x1000; break;
+                case BackButtonAction::L3:            btns |= 0x4000; break;
+                case BackButtonAction::R3:            btns |= 0x8000; break;
+                case BackButtonAction::Guide:         btns |= 0x0001; break;
+                case BackButtonAction::TouchpadClick: btns |= 0x0002; break;
+                default: break;
+                }
+            };
+            if (n > 4) {
+                if (buf[4] & SteamController::BTN_L4) applyBack(backCfg.l4);
+                if (buf[4] & SteamController::BTN_L5) applyBack(backCfg.l5);
+            }
+            if (n > 2) {
+                if (buf[2] & SteamController::BTN_R4) applyBack(backCfg.r4);
+                if (buf[2] & SteamController::BTN_QAM) applyBack(backCfg.qam);
+            }
+            if (n > 3) {
+                if (buf[3] & SteamController::BTN_R5) applyBack(backCfg.r5);
+            }
+            forEachPadBinding(applyBack);
+
+            // Touchpad click from physical pad press when pad is in touchpad mode
+            if ((resolved.rightPressed && rightToTouchpad) || (resolved.leftPressed && leftToTouchpad)) {
+                btns |= 0x0002; // ButtonTouchpadClick
+            }
+
+            // Touch coordinates: right SC pad -> Touch 1, left SC pad -> Touch 2
+            const bool rawRightTouching = (b2 & SteamController::BTN_TP_RT) != 0;
+            const bool rawLeftTouching  = (b3 & SteamController::BTN_TP_LT) != 0;
+            const bool rightTouching = rawRightTouching && rightToTouchpad;
+            const bool leftTouching  = rawLeftTouching  && leftToTouchpad;
+
+            int16_t rPadX = 0, rPadY = 0, lPadX = 0, lPadY = 0;
+            if (n >= 28) {
+                memcpy(&lPadX, buf + 18, 2);
+                memcpy(&lPadY, buf + 20, 2);
+                memcpy(&rPadX, buf + 24, 2);
+                memcpy(&rPadY, buf + 26, 2);
+            }
+
+            const uint16_t t1X = rightTouching ? static_cast<uint16_t>(NormalizePadAxis(rPadX, 1919, false)) : 0;
+            const uint16_t t1Y = rightTouching ? static_cast<uint16_t>(NormalizePadAxis(rPadY, 1069, true))  : 0;
+            const uint16_t t2X = leftTouching  ? static_cast<uint16_t>(NormalizePadAxis(lPadX, 1919, false)) : 0;
+            const uint16_t t2Y = leftTouching  ? static_cast<uint16_t>(NormalizePadAxis(lPadY, 1069, true))  : 0;
+
+            memcpy(pkt.data() + 9, &t1X, 2);
+            memcpy(pkt.data() + 11, &t1Y, 2);
+            pkt[13] = rightTouching ? 1 : 0;
+            memcpy(pkt.data() + 14, &t2X, 2);
+            memcpy(pkt.data() + 16, &t2Y, 2);
+            pkt[18] = leftTouching ? 1 : 0;
+        }
+        pkt[6] = dpad;
+        memcpy(pkt.data() + 7, &btns, 2);
+
+        int16_t accelX = 0, accelY = 0, accelZ = 0;
+        int16_t gyroX = 0, gyroY = 0, gyroZ = 0;
+        if (n >= 46) {
+            memcpy(&accelX, buf + 34, 2);
+            memcpy(&accelY, buf + 36, 2);
+            memcpy(&accelZ, buf + 38, 2);
+            memcpy(&gyroX, buf + 40, 2);
+            memcpy(&gyroY, buf + 42, 2);
+            memcpy(&gyroZ, buf + 44, 2);
+        }
+        memcpy(pkt.data() + 19, &gyroX, 2);
+        memcpy(pkt.data() + 21, &gyroY, 2);
+        memcpy(pkt.data() + 23, &gyroZ, 2);
+        memcpy(pkt.data() + 25, &accelX, 2);
+        memcpy(pkt.data() + 27, &accelY, 2);
+        memcpy(pkt.data() + 29, &accelZ, 2);
+        pkt[31] = 100;
+        pkt[32] = 0;
+
+        m_viiper->SendInput(pkt.data(), pkt.size());
+    } else if (m_platform == ControllerPlatform::PlayStation) {
         // A pad reaches the DS4 touchpad only when that is what it was set
         // to. Decided per pad, so one pad can drive the desktop while the
         // other still reaches the game — and a pad set to None reaches

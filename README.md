@@ -1,133 +1,200 @@
-# SteamlessController
+# SteamlessController DSU Server 🎮
 
-A lightweight Windows system tray app that lets you use a **Steam Controller** as a standard gamepad — without Steam running.
+[![GitHub release](https://img.shields.io/github/v/release/ZaydelJmz/SteamlessController-DSU-Server?style=flat-square&color=blue)](https://github.com/ZaydelJmz/SteamlessController-DSU-Server/releases/latest)
+[![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011%20(x64)-informational?style=flat-square)](https://github.com/ZaydelJmz/SteamlessController-DSU-Server)
+[![Hardware](https://img.shields.io/badge/Hardware-Steam%20Controller-purple?style=flat-square)](https://github.com/ZaydelJmz/SteamlessController-DSU-Server)
+[![License](https://img.shields.io/badge/License-GPLv3-green?style=flat-square)](LICENSE)
 
-<img width="263" height="154" alt="image" src="https://github.com/user-attachments/assets/7f4a63f6-b700-47dd-aeac-1fa8f78fcd04" />
+> **Notice:** This project is an enhanced standalone fork based on the original [SteamlessController](https://github.com/ddeverill/SteamlessController) by **ddeverill**, extending it for the **Steam Controller** with an integrated Cemuhook DSU motion server, Nintendo Switch Pro & PlayStation 5 (DualSense) emulation via USBIP, official platform logos, and advanced haptic controls.
 
-When **Steamless Mode** is active, the app disables the controller's built-in keyboard/mouse emulation (lizard mode) and exposes it as a virtual Xbox 360 controller (or PlayStation controller) via [ViGEmBus](https://github.com/nefarius/ViGEmBus), making it compatible with any game that supports the Xbox or PlayStation controller.
+A standalone driver and input wrapper specifically tailored for the **Steam Controller** on Windows that operates completely **without the Steam client running**.
 
-## Features
+**SteamlessController DSU Server** unlocks full independence for your Steam Controller, emulating standard and modern gamepads (**Xbox 360**, **PlayStation 4**, **PlayStation 5 DualSense**, and **Nintendo Switch Pro**) alongside an **integrated Cemuhook DSU motion server** (`127.0.0.1:26760`) for next-gen gyro aiming in emulators and PC games.
 
-- Supports all connection modes! Puck, wired, and Bluetooth!
-- Runs alongside Steam! No need to close Steam to toggle modes or force you to use your PC in a weird way.
-- Brand new extensive remapping controls for back buttons and trackpads. Save custom mappings and load them per game!
-- Use a trackpad as a **directional pad** — press its outer edge for a direction and its middle for a button of its own — or as a **single button**. Each direction, the click and a tap are all rebindable.
-- Enable/Disable manually, or use new auto modes to turn on / off when it makes sense.
-- **Steam + Y turns the controller off**, just like it does under Steam (puck and Bluetooth; a controller on a cable is powered by it and stays on).
-- Start on launch, suppress notifications, make this utility your own.
+---
 
-<img width="478" height="373" alt="image" src="https://github.com/user-attachments/assets/171522c4-71a3-46ff-bfa1-d7c5d4b845c6" />
+## 🌟 Key Features
 
-<img width="770" height="780" alt="image" src="https://github.com/user-attachments/assets/0c4da5c6-6c9f-4748-a8b8-7552e90ad6d9" />
+* 🎮 **Full Steam Controller Independence**
+  * Complete driver and input wrapper running outside of Steam.
+  * Direct support for dual trackpads, analog thumbstick, 4 back grip buttons / paddles, and wireless connectivity via "The Puck" (USB dongle), Bluetooth, or USB cable.
 
-## Requirements
+* 🎛️ **Quick "Choose Platform" Selector with Official High-DPI Logos**
+  * Located on the tray panel beneath *Customize Controls*.
+  * Features a **4-button segmented bar** with crisp, official high-DPI vector logos (38×38 DIPs):
+    * **Xbox 360**: Emerald green sphere with 3D chrome/white cross and glowing core.
+    * **PlayStation 4**: Classic PlayStation blue monogram with PS4 badge.
+    * **PlayStation 5**: DualSense white & electric blue monogram with PS5 badge.
+    * **Nintendo Switch Pro**: Neon red Dual Joy-Con emblem with PRO badge.
+  * **Seamless 600 ms Cooldown Switch**: Clean teardown and rebuild pumping Win32 messages with visual amber feedback (`Switching platform...`), ensuring Windows PnP assigns the new virtual pad strictly to **Player 1 / Gamepad 1 (Slot 0)**.
 
-### To run
-- Windows 10 or later (64-bit)
-- [ViGEmBus](https://github.com/nefarius/ViGEmBus/releases/latest) driver installed
-- Steam Controller — wired USB (PID `0x1302`), wireless dongle (PID `0x1304`), or Bluetooth LE (PID `0x1303`, pair via Windows Bluetooth settings)
+* 🕹️ **Four Emulated Controller Modes**
+  * **Xbox 360** (via ViGEmBus): Maximum out-of-the-box compatibility with Windows PC titles.
+  * **DualShock 4** (via ViGEmBus): PS4 gamepad emulation with lightbar and native touchpad.
+  * **PlayStation 5 (DualSense)** (via VIIPER + USBIP): 33-byte native report with dual-point touchpad, gyro/accel motion, and adaptive trigger feedback.
+  * **Nintendo Switch Pro** (via VIIPER + USBIP): 24-byte report with 0..4095 analog stick resolution, real-time battery reporting, system `Capture` & `Home` buttons, and native 6-axis gyro.
 
-### To build
-- [Visual Studio 2022](https://visualstudio.microsoft.com/) with the **Desktop development with C++** workload
-- [CMake](https://cmake.org/download/) 3.20 or later (included with Visual Studio, or install separately)
-- Windows SDK 10.0.22000 or later (installed via Visual Studio Installer)
+* 🌐 **Built-in Cemuhook DSU Motion Server (`127.0.0.1:26760`)**
+  * Direct 6-axis IMU UDP motion streaming for gyro aiming in emulators (**Ryujinx, Yuzu, Cemu, Dolphin, PCSX2, RPCS3, Citra**).
+  * No external bridge apps (such as BetterJoy or JoyShockMapper) required.
 
-## Building
+* 📳 **Advanced Haptics & Trackpad Movement Controls**
+  * **Movement Haptics** toggle in Customize Controls to silence continuous trackpad gliding buzz while preserving crisp tactile click pulses.
+  * Click pulses only trigger when a real action is bound; inert when set to 'None'.
+  * Full translation of dual-motor rumble and **Nintendo HD Rumble** frequency envelopes into realistic tactile waveforms on the Steam Controller LRA actuators.
 
-```bat
-git clone https://github.com/your-username/SteamlessController.git
-cd SteamlessController
-cmake -B build
-cmake --build build --target SteamlessController
+* 🔋 **Intelligent Auto-Disable Sleep Watchdog (30s)**
+  * When the controller powers off (timeout, battery empty, or button) while the wireless dongle stays plugged in, the app automatically transitions to **Off** after 30 seconds of silence.
+  * Avoids frozen battery percentages and frees virtual controller slots. Reconnects automatically as soon as the controller powers back on.
+
+* 🧠 **Smart Steam Integration**
+  * Keeps your desktop bindings active while Steam is running in the background.
+  * Automatically and transparently pauses only when Steam launches a game (`gameoverlayui.exe`), avoiding double-input conflicts.
+
+---
+
+## 📥 Installation & Setup
+
+### 1. Requirements
+* Windows 10 or 11 (64-bit)
+* Steam Controller (connected via "The Puck" wireless dongle, Bluetooth, or USB cable)
+* **[ViGEmBus](https://github.com/nefarius/ViGEmBus)** (for Xbox 360 & DualShock 4 emulation)
+* **[usbip-win2](https://github.com/cezanne/usbip-win2)** (for Switch Pro & PS5 DualSense emulation)
+* Visual C++ 2015–2022 Redistributable (x64)
+
+> 💡 **Quick Install**: An automated installer script (`Instalar requisitos.cmd`) is included in the release package to download and install all missing drivers with one click.
+
+---
+
+### 2. Getting Started
+
+1. Download **`SteamlessDSUServer-0.1.5.zip`** from the [Latest Release](https://github.com/ZaydelJmz/SteamlessController-DSU-Server/releases/latest).
+2. Extract the folder to your preferred location (e.g. `C:\Programas\SteamlessDSUServer-0.1.5`).
+3. If running for the first time, right-click **`Instalar requisitos.cmd`** and select **"Run as administrator"**.
+4. Restart Windows if installing drivers for the first time.
+5. Connect your Steam Controller and launch **`SteamlessController.exe`**.
+6. The application minimizes to the notification area (system tray). Click the tray icon to switch platforms instantly via **"Choose Platform"** or customize controls.
+
+---
+
+## ⚙️ Emulator Motion Setup (DSU)
+
+To use gyro aiming in your emulators:
+
+```text
+Protocol  : Cemuhook / DSU Client
+Server IP : 127.0.0.1  (or localhost)
+Port      : 26760
+Slot      : 0          (or Auto-detect)
 ```
 
-The executable will be at `build\Debug\SteamlessController.exe`.
+| Emulator | Where to configure |
+| :--- | :--- |
+| **Ryujinx** | `Options` ➔ `Settings` ➔ `Input` ➔ Enable Motion ➔ `DSU Client` (`127.0.0.1:26760`) |
+| **Cemu** | `Options` ➔ `GamePad motion source` ➔ `DSU1` ➔ By slot |
+| **Dolphin** | `Controllers` ➔ `Motion Sources` ➔ Add `127.0.0.1:26760` |
+| **PCSX2** | `Settings` ➔ `Controllers` ➔ `Motion` ➔ `Enable DSU Motion Server` |
+| **RPCS3** | `Pads` ➔ `Motion Sensor` ➔ `DSU Client` (`127.0.0.1:26760`) |
 
-For a release build:
+---
 
-```bat
-cmake -B build/release -G "Visual Studio 18 2025"
-cmake --build build/release --config Release --target SteamlessController
+## 🙏 Credits & Acknowledgments
+
+* **[ddeverill/SteamlessController](https://github.com/ddeverill/SteamlessController)**: The original standalone utility that this project builds upon.
+* **[david419kr/steamless-controller-XB-PS-NS](https://github.com/david419kr/steamless-controller-XB-PS-NS)**: Base implementation for Switch Pro support and VIIPER sidecar integration.
+* **[Viiper](https://github.com/Viiper/Viiper)** & **usbip-win2**: Framework powering native Switch Pro and PS5 DualSense virtual emulation.
+* **[ViGEmBus](https://github.com/nefarius/ViGEmBus)**: Virtual Gamepad Emulation Framework by Nefarius for Xbox 360 and DualShock 4 emulation.
+* **[Cemuhook](https://cemuhook.sshnuke.net/)**: The open DSU UDP motion protocol specification.
+
+---
+
+## 📄 License
+
+This project is licensed under the **GNU General Public License v3.0 (GPLv3)** — see the [LICENSE](LICENSE) file for details.
+
+---
+
+<details>
+<summary><b>▶ 🇪🇸 Versión en Español (Haz clic aquí para expandir)</b></summary>
+
+<br>
+
+## SteamlessController DSU Server 🎮
+
+> **Aviso:** Este proyecto es un fork independiente basado en el [SteamlessController](https://github.com/ddeverill/SteamlessController) original de **ddeverill**, adaptándolo para el **Steam Controller** con un servidor de movimiento Cemuhook DSU integrado, emulación de Nintendo Switch Pro y PlayStation 5 (DualSense) vía USBIP, logotipos oficiales en alta definición y controles hápticos avanzados.
+
+Controlador independiente para el **Steam Controller** en Windows que funciona **sin necesidad de abrir Steam**.
+
+**SteamlessController DSU Server** desbloquea la independencia total del Steam Controller, emulando mandos estándar y modernos (**Xbox 360**, **PlayStation 4**, **PlayStation 5 DualSense** y **Nintendo Switch Pro**) e integrando un **servidor de movimiento Cemuhook DSU** (`127.0.0.1:26760`) para apuntar con el giroscopio en emuladores y juegos de PC.
+
+---
+
+### 🌟 Características Principales
+
+* 🎮 **Soporte Completo e Independiente para Steam Controller**
+  * Wrapper y controlador completo que funciona fuera de Steam.
+  * Soporte para ambos trackpads hápticos, stick analógico, los botones traseros (L4/R4, L5/R5) y conectividad mediante "The Puck" (dongle USB), Bluetooth o cable USB.
+
+* 🎛️ **Botonera "Choose Platform" con Logotipos Oficiales (38x38 DIPs)**
+  * Disponible en el panel de la bandeja del sistema debajo de *Customize Controls*.
+  * Iconos oficiales diseñados en vector de alta resolución:
+    * **Xbox 360**: Esfera verde esmeralda con cruz cromada en relieve y núcleo brillante.
+    * **PlayStation 4**: Monograma oficial PlayStation en azul PS4.
+    * **PlayStation 5**: Monograma con estética DualSense en blanco hielo y azul eléctrico.
+    * **Nintendo Switch Pro**: Emblema de los dos Joy-Con en rojo neón con distintivo PRO.
+  * **Cooldown visible de 600 ms**: Destrucción y recreación ordenada con bomba de mensajes Win32 y estado ámbar (`Switching platform...`), garantizando que Windows asigne siempre el nuevo mando al **Jugador 1 / Mando 1 (Slot 0)**.
+
+* 🕹️ **Cuatro Modos de Emulación Virtual**
+  * **Xbox 360** (vía ViGEmBus): Máxima compatibilidad con juegos de PC de todas las épocas.
+  * **DualShock 4** (vía ViGEmBus): Emulación de PS4 con touchpad táctil y barra de luz.
+  * **PlayStation 5 (DualSense)** (vía VIIPER + USBIP): Reporte de 33 bytes con soporte táctil, giroscopio y vibración de gatillos.
+  * **Nintendo Switch Pro** (vía VIIPER + USBIP): Reporte de 24 bytes con resolución de stick 0..4095, batería en tiempo real, botones `Captura` y `Home`, y giroscopio nativo de 6 ejes.
+
+* 🌐 **Servidor de Movimiento Cemuhook DSU Integrado (`127.0.0.1:26760`)**
+  * Transmisión directa por UDP de acelerómetro y giroscopio de 6 ejes para emuladores (**Ryujinx, Yuzu, Cemu, Dolphin, PCSX2, RPCS3, Citra**).
+  * Sin necesidad de software puente adicional como BetterJoy o JoyShockMapper.
+
+* 📳 **Control de Hápticos y Desplazamiento**
+  * Selector "Movement Haptics" para silenciar el zumbido continuo al deslizar el dedo por el trackpad sin perder la respuesta táctil al presionar clics reales.
+  * Conversión de vibración de dos motores y del **HD Rumble** de Nintendo a impulsos táctiles LRA del Steam Controller.
+
+* 🔋 **Watchdog de Inactividad y Apagado (30s)**
+  * Si el control se apaga o se duerme con el dongle conectado, la app pasa a estado **Off** tras 30 segundos, liberando el slot virtual y evitando porcentajes de batería congelados. Al encenderse de nuevo, se reconecta automáticamente.
+
+* 🧠 **Detección Inteligente de Steam**
+  * El mando sigue funcionando en el escritorio aunque Steam esté abierto.
+  * Se pausa únicamente cuando Steam inicia un juego (`gameoverlayui.exe`) para evitar dobles entradas.
+
+---
+
+### 📥 Instalación y Uso Rápido
+
+1. Descarga **`SteamlessDSUServer-0.1.5.zip`** desde la sección de [Releases](https://github.com/ZaydelJmz/SteamlessController-DSU-Server/releases/latest).
+2. Descomprime la carpeta donde prefieras.
+3. Si es tu primera vez, haz clic derecho sobre **`Instalar requisitos.cmd`** y elige **"Ejecutar como administrador"**.
+4. Reinicia el equipo si instalaste drivers nuevos.
+5. Abre **`SteamlessController.exe`**.
+6. El programa se iniciará en la bandeja del sistema (junto al reloj de Windows). Haz clic en su icono para alternar de plataforma o configurar controles.
+
+---
+
+### ⚙️ Configurar Giroscopio en Emuladores
+
+```text
+Protocolo : Cemuhook / DSU Client
+IP        : 127.0.0.1  (o localhost)
+Puerto    : 26760
+Slot      : 0          (o Automático)
 ```
 
-> If you have Visual Studio 2022, replace `"Visual Studio 18 2025"` with `"Visual Studio 17 2022"`.
+---
 
-## Building the installer
+### 🙏 Créditos y Reconocimientos
 
-The installer is compiled from `resources\InnoInstallerScript.iss` with [Inno Setup](https://jrsoftware.org/isinfo.php). It needs two things a fresh clone does not have.
+* **[ddeverill/SteamlessController](https://github.com/ddeverill/SteamlessController)**: El proyecto original sobre el cual se basa esta versión.
+* **[david419kr/steamless-controller-XB-PS-NS](https://github.com/david419kr/steamless-controller-XB-PS-NS)**: Soporte base de Switch Pro y VIIPER.
+* **[Viiper](https://github.com/Viiper/Viiper)** & **usbip-win2**: Framework de emulación USBIP para Switch Pro y DualSense.
+* **[ViGEmBus](https://github.com/nefarius/ViGEmBus)**: Driver de Nefarius para mandos Xbox 360 y DualShock 4.
+* **[Cemuhook](https://cemuhook.sshnuke.net/)**: Especificación del protocolo DSU sobre UDP.
 
-**Release builds of all three executables it packages.** The command in the previous section builds only the tray app:
-
-```bat
-cmake --build build/release --config Release --target SteamlessController
-cmake --build build/release --config Release --target SteamlessDeviceCycle
-cmake --build build/release --config Release --target ViGEmBusProbe
-```
-
-`SteamlessDeviceCycle` is the elevated helper that restarts the controller's device node. `ViGEmBusProbe` is how Setup checks whether the driver actually installed, and it stays in the install folder afterwards as a diagnostic.
-
-**The ViGEmBus driver installer**, which is not in this repository — it is a 6 MB vendored binary, and `*.exe` is gitignored. Download it from [ViGEmBus releases](https://github.com/nefarius/ViGEmBus/releases/latest) and place it here:
-
-```
-resources\ViGEmBus_1.22.0_x64_x86_arm64.exe
-```
-
-The filename must match `#define ViGEmSetup` at the top of the script. Inno resolves `[Files]` sources when it compiles, so a missing or differently named payload fails the build outright rather than producing an installer that silently ships no driver. If you update the ViGEmBus version, change the `#define` to match the new filename.
-
-## CMake Targets
-
-| Target | Description |
-|---|---|
-| `SteamlessController` | Main system tray application |
-| `SteamlessDeviceCycle` | Elevated helper that disables and re-enables the controller's device node, run as an on-demand scheduled task. Shipped by the installer. |
-| `ViGEmBusProbe` | Reports whether a ViGEm bus is present by enumerating its interface. Used by Setup to verify the driver installed, and shipped as a diagnostic. |
-| `SteamProbe` | Console diagnostic tool — dumps raw HID report bytes as you interact with the controller. Useful for protocol research. |
-| `RawControllerProbe` | Checks whether `Windows.Gaming.Input.RawGameController` can enumerate the Steam Controller (requires WinRT). |
-| `GameLibraryProbe` | Console diagnostic — lists every application the per-game profile picker can find, with the source each came from and a per-source count. Ask for its output when someone reports that a game is missing from the picker. Given a directory, it instead runs only the Epic manifest reader against it. |
-
-## How it works
-
-The Steam Controller exposes a vendor HID collection (usage page `0xFF00`) that carries all game input in a 54-byte report (ID `0x42`) at ~60 Hz. By default the firmware runs in **lizard mode**, emulating a keyboard and mouse so the controller works without drivers.
-
-SteamlessController sends HID feature reports to disable lizard mode, then reads the raw input reports and translates them into a virtual Xbox 360 controller via ViGEmBus. A background heartbeat re-sends the disable command every 800 ms to keep lizard mode off.
-
-The full input report layout is documented in [`src/steam/SteamController.h`](src/steam/SteamController.h).
-
-### Per-game profiles
-
-A profile can be attached to one game instead of applying everywhere. The game
-is chosen from a picker that draws on several sources at once: both Start Menu
-and both Desktop shortcut folders, the installed MSIX/Store package list, Steam's
-own manifests, and the records kept by the Epic Games Store, GOG Galaxy, Ubisoft
-Connect and Battle.net. Anything none of those know about — a portable build, an
-emulator, an itch.io download — can be added by hand, either by picking it out of
-the applications currently running or by browsing to its `.exe`.
-
-Whichever profile applies is decided by what is in the *foreground*, not by what
-is running: a launcher that stays resident long after the game exits would
-otherwise keep claiming the controller. See
-[`src/app/ForegroundWatcher.h`](src/app/ForegroundWatcher.h) for why, and
-[`src/app/GameLibrary.h`](src/app/GameLibrary.h) for the four shapes a game's
-saved identity can take.
-
-## Third-party
-
-- [ViGEmClient](https://github.com/nefarius/ViGEmClient) — MIT License, built from source as a static library
-- [Barlow](https://github.com/jpt/barlow) and [JetBrains Mono](https://github.com/JetBrains/JetBrainsMono) — SIL Open Font License 1.1, built into the executable unmodified. The license texts are in [`resources/fonts`](resources/fonts) and are installed next to the program
-
-## Code signing policy
-
-Free code signing provided by [SignPath.io](https://about.signpath.io), certificate by [SignPath Foundation](https://signpath.org).
-
-Releases are built and signed by the [Release workflow](.github/workflows/release.yml) from this repository's source. Only this project's own executables and installer are signed. The bundled ViGEmBus installer is signed by its own publisher and passes through unchanged.
-
-Team roles:
-
-- Committers and reviewers: [Dylan Deverill](https://github.com/ddeverill)
-- Approvers: [Dylan Deverill](https://github.com/ddeverill)
-
-### Privacy
-
-SteamlessController sends no data about you or your system anywhere. Its fonts are built into the program, so no window loads anything from the web. The one network request it can cause is opt-in:
-
-- If the ViGEmBus driver is missing, clicking the notification that says so opens its download page in your browser.
+</details>

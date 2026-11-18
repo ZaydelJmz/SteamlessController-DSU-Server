@@ -3,11 +3,14 @@
 #include <cstddef>
 #include <atomic>
 #include <functional>
+#include <memory>
 #include <string>
 #include <thread>
 #include "BackButtonConfig.h"
 #include "ControllerPlatform.h"
 #include "TrackpadConfig.h"
+
+class ViiperClient;
 
 class VirtualController {
 public:
@@ -51,6 +54,7 @@ private:
     void Ds4OutputLoop();
 
     ControllerPlatform m_platform;
+    std::unique_ptr<ViiperClient> m_viiper;
     void*  m_client       = nullptr;
     void*  m_target       = nullptr;
     RumbleCallback m_rumbleCallback;

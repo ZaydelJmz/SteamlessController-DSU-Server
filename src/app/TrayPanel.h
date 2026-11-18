@@ -3,6 +3,7 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include "ControllerPlatform.h"
 
 // The tray icon's popup: a small custom-drawn panel in place of a native
 // TrackPopupMenu. It owns nothing but its own appearance — what it shows comes
@@ -19,8 +20,9 @@ public:
     enum class Action {
         ToggleControl,
         ModeManual, ModeSteam, ModeGame, ModeProfile,
+        PlatformXbox, PlatformPS, PlatformPS5, PlatformSwitch,
         Customize,
-        Startup, EnableOnLaunch, Notifications,
+        Startup, Notifications,
         OpenLog, Exit,
         EnableDevice,
     };
@@ -35,9 +37,10 @@ public:
                                       // actual state under an auto mode
         int  mode           = 0;      // AutoMode's value: 0 Manual .. 3 Profile
         int  battery        = -1;     // percent, or -1 when there is no reading
+        ControllerPlatform platform = ControllerPlatform::Xbox;
         bool startup        = false;
-        bool enableOnLaunch = false;  // only drawn in Manual mode
         bool notifications  = false;
+        bool switching      = false;
 
         bool operator==(const Model&) const = default;
     };
@@ -57,6 +60,7 @@ public:
 
     void Close();
     bool IsOpen() const;
+    void Refresh(bool force = false);
 
     // True for a moment after the panel was dismissed by clicking elsewhere.
     // Clicking the tray icon to close it deactivates the panel on button-down

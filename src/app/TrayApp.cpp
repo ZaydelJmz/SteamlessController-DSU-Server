@@ -1,6 +1,7 @@
 #include "TrayApp.h"
 #include "ControllerManager.h"
 #include "ControllerPlatform.h"
+#include "ViiperClient.h"
 #include "DeviceRestart.h"
 #include "EventLog.h"
 #include "GameLibrary.h"
@@ -157,6 +158,10 @@ bool TrayApp::Init(HINSTANCE hInstance) {
         PostMessageW(m_hwnd, WM_ALERT, 0, 0);
     };
     m_controller->SetAlertCallback(raiseAlert);
+    m_controller->SetAutoDisableCallback([this]() {
+        // Called from the read thread: marshal to the UI thread.
+        PostMessageW(m_hwnd, WM_AUTO_DISABLE, 0, 0);
+    });
     // Blocked input reaches the user the same way a dead controller does: it
     // presents identically — nothing happens — and the cause is something only
     // this app is in a position to name.
@@ -328,6 +333,18 @@ LRESULT TrayApp::HandleMessage(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
             m_startupEnabled = !m_startupEnabled;
             UpdateStartupRegistration();
             break;
+        case IDM_PLATFORM_XBOX:
+            SetPlatform(ControllerPlatform::Xbox);
+            break;
+        case IDM_PLATFORM_PS:
+            SetPlatform(ControllerPlatform::PlayStation);
+            break;
+        case IDM_PLATFORM_PS5:
+            SetPlatform(ControllerPlatform::DualSense);
+            break;
+        case IDM_PLATFORM_SWITCH:
+            SetPlatform(ControllerPlatform::Switch);
+            break;
         case IDM_ENABLE_ON_LAUNCH:
             m_enableOnLaunch = !m_enableOnLaunch;
             SaveSettings();
@@ -346,7 +363,8 @@ LRESULT TrayApp::HandleMessage(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
             break;
         case IDM_EXIT: {
             EventLog::Write("=== SteamlessController exiting (user request) ===");
-            m_controller->DisableGameMode();
+            ViiperClient::StopSidecar();
+            m_controller->ReleaseDevices();
             // A held dock goes with the process, but Steam reopens one only on
             // arrival — so without a cycle it would not hear about a controller
             // set on the puck again until the puck was replugged.
@@ -390,6 +408,24 @@ LRESULT TrayApp::HandleMessage(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
         }
         if (!title.empty())
             ShowAlertBalloon(title, text);
+        return 0;
+    }
+
+    case WM_AUTO_DISABLE: {
+        // The read loop exited after a 30s stall (controller powered off).
+        // The thread has already set readRunning=false and returned, so
+        // DisableGameMode()'s StopReadLoop join() completes immediately.
+        if (m_controller->ConsumeAutoDisableRequest()) {
+            EventLog::Write("AUTO-DISABLE: UI thread received request, disabling game mode");
+            m_controller->DisableGameMode();
+            UpdateTrayIcon(m_controller->IsConnected(), false,
+                           m_controller->IsGameModeShared(), false);
+            // If the user wants control, re-arm the acquire path —
+            // the controller will produce a device-change event when it
+            // powers back on, but that only helps if m_wantControl is set.
+            if (m_wantControl)
+                SetTimer(m_hwnd, IDT_ACQUIRE, ACQUIRE_RETRY_MS, nullptr);
+        }
         return 0;
     }
 
@@ -513,6 +549,7 @@ LRESULT TrayApp::HandleMessage(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
         return TRUE;
 
     case WM_DESTROY:
+        ViiperClient::StopSidecar();
         PostQuitMessage(0);
         return 0;
     }
@@ -551,6 +588,30 @@ void TrayApp::SetAutoMode(AutoMode mode) {
         m_wantControl = m_controller->IsGameModeActive();
     else
         EvaluateControl();
+}
+
+void TrayApp::SetPlatform(ControllerPlatform platform) {
+    if (m_defaultProfile.platform == platform &&
+        (m_activeGameId.empty() || m_gameProfiles[m_activeGameId].platform == platform)) {
+        return;
+    }
+    m_defaultProfile.platform = platform;
+    if (!m_activeGameId.empty() && m_gameProfiles.find(m_activeGameId) != m_gameProfiles.end()) {
+        m_gameProfiles[m_activeGameId].platform = platform;
+        GameProfiles::Save(m_gameProfiles);
+    }
+    SaveSettings();
+    PushActiveProfile();
+    EventLog::Write("USER: platform set to %s",
+                    platform == ControllerPlatform::Xbox ? "Xbox 360" :
+                    platform == ControllerPlatform::PlayStation ? "PlayStation 4" :
+                    platform == ControllerPlatform::DualSense ? "PlayStation 5" : "Switch Pro");
+    if (m_notificationsEnabled) {
+        std::wstring name = (platform == ControllerPlatform::Xbox ? L"Xbox 360" :
+                             platform == ControllerPlatform::PlayStation ? L"PlayStation 4" :
+                             platform == ControllerPlatform::DualSense ? L"PlayStation 5 (DualSense)" : L"Nintendo Switch Pro");
+        ShowAlertBalloon(L"Platform Changed", L"Emulating " + name + L" controller (Player 1)", BalloonAction::None, NIIF_INFO);
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -948,9 +1009,9 @@ void TrayApp::ReleaseControl() {
     // puck was replugged. Docks can be held with no game mode: an acquire that
     // cycles the slot lets go of the slot but keeps them.
     const std::vector<std::wstring> heldDocks = m_controller->HeldDockPaths();
-    // Good citizen: restore lizard mode and close our HID handles so
-    // Steam can claim the controller without contention.
-    m_controller->ReleaseDevices();
+    // Disable game mode, but keep device open in shared Lizard+IMU mode
+    // so Cemuhook DSU server (127.0.0.1:26760) continues streaming gyro in background!
+    m_controller->DisableGameMode();
     // Steam only (re)opens controllers on device-arrival events. If it is
     // already running and we held the device, it never saw one — cycle
     // the device so Steam adopts it immediately.
@@ -1690,6 +1751,8 @@ void TrayApp::UpdateTrayIcon(bool connected, bool gameModeActive, bool sharedHan
                                 : m_iconOff;
     wcscpy_s(nid.szTip, tip);
     Shell_NotifyIconW(NIM_MODIFY, &nid);
+
+    if (m_panel.IsOpen()) m_panel.Refresh(true);
 }
 
 void TrayApp::ShowAlertBalloon(const std::wstring& title, const std::wstring& text,
@@ -1935,20 +1998,17 @@ void TrayApp::LoadSettings() {
     // 0 = Manual, 1 = OffWhileSteam, 2 = OffOnlyInGame, 3 = OffUnlessProfile
     // (old builds stored 0/1). Anything unrecognised falls back to Manual,
     // which is the mode that touches nothing on its own.
-    const DWORD mode = readDw(L"AutoSteamMode", 0);
-    m_autoMode = mode == 3 ? AutoMode::OffUnlessProfile
-               : mode == 2 ? AutoMode::OffOnlyInGame
-               : mode == 1 ? AutoMode::OffWhileSteam
-                           : AutoMode::Manual;
-    const bool isPlayStation = readDw(L"ControllerPlatform", 0) != 0;
+    m_autoMode = AutoMode::Manual;
+    const DWORD platVal = readDw(L"ControllerPlatform", 0);
 
     // Existing installs keep exactly the bindings they had — the new
     // click-by-default only applies to fresh installs, which never reach here
     // and so take the BackButtonConfig defaults.
     const DWORD unbound = BackButtonBinding::FromAction(BackButtonAction::None).Pack();
     ControllerProfile profile;
-    profile.platform = isPlayStation ? ControllerPlatform::PlayStation
-                                     : ControllerPlatform::Xbox;
+    profile.platform = static_cast<ControllerPlatform>(platVal <= 3 ? platVal : 0);
+    const bool isPlayStation = (profile.platform == ControllerPlatform::PlayStation ||
+                                profile.platform == ControllerPlatform::DualSense);
     profile.back.l4 = BackButtonBinding::Unpack(readDw(L"BackBtnL4", unbound));
     profile.back.l5 = BackButtonBinding::Unpack(readDw(L"BackBtnL5", unbound));
     profile.back.r4 = BackButtonBinding::Unpack(readDw(L"BackBtnR4", unbound));
@@ -2012,6 +2072,7 @@ void TrayApp::LoadSettings() {
             pad.click     = binding(L"Click", BackButtonAction::None);
             pad.scrollDir = ScrollDirectionFromDword(readDw(name(L"ScrollDir").c_str(), 0));
             pad.scrollSpeed = ScrollSpeedFromDword(readDw(name(L"ScrollSpeed").c_str(), 0));
+            pad.haptics   = readDw(name(L"Haptics").c_str(), 1) != 0;
             pad.touch     = binding(L"Touch", BackButtonAction::None);
             pad.up        = binding(L"Up",    BackButtonAction::DPadUp);
             pad.down      = binding(L"Down",  BackButtonAction::DPadDown);
@@ -2047,11 +2108,12 @@ void TrayApp::LoadSettings() {
 
     m_notificationsEnabled = readDw(L"ShowNotifications", 1) != 0;
 
-    // Startup mechanism: 0 none, 1 Run key, 2 elevated task. Migrate installs
-    // that predate the setting by probing the Run key they would have used.
-    m_startupMechanism = static_cast<int>(readDw(L"StartupMechanism",
-                                                 RunKeyExists() ? 1 : 0));
+    // Startup mechanism: 0 none, 1 Run key, 2 elevated task.
+    // Default is 0 (OFF) until the user explicitly toggles "Start with Windows".
+    m_startupMechanism = static_cast<int>(readDw(L"StartupMechanism", 0));
     m_startupEnabled   = m_startupMechanism != 0;
+    if (!m_startupEnabled && RunKeyExists())
+        SetRunKey(false);
 
     // Default false here, not true: this branch only runs once the registry
     // key already exists, i.e. the app has run before — including on builds
@@ -2102,8 +2164,7 @@ void TrayApp::SaveSettings() {
     // profile can be active here, and persisting that would overwrite the
     // user's own settings with a per-game override.
     const auto& profile = m_defaultProfile;
-    writeDw(L"ControllerPlatform",
-            profile.platform == ControllerPlatform::PlayStation ? 1 : 0);
+    writeDw(L"ControllerPlatform", static_cast<DWORD>(profile.platform));
     writeDw(L"BackBtnL4", profile.back.l4.Pack());
     writeDw(L"BackBtnL5", profile.back.l5.Pack());
     writeDw(L"BackBtnR4", profile.back.r4.Pack());
@@ -2116,6 +2177,7 @@ void TrayApp::SaveSettings() {
         writeDw(name(L"Click").c_str(),     pad.click.Pack());
         writeDw(name(L"ScrollDir").c_str(), static_cast<DWORD>(pad.scrollDir));
         writeDw(name(L"ScrollSpeed").c_str(), pad.scrollSpeed);
+        writeDw(name(L"Haptics").c_str(),     pad.haptics ? 1 : 0);
         writeDw(name(L"Touch").c_str(),     pad.touch.Pack());
         writeDw(name(L"Up").c_str(),        pad.up.Pack());
         writeDw(name(L"Down").c_str(),      pad.down.Pack());
@@ -2184,9 +2246,10 @@ TrayPanel::Model TrayApp::BuildPanelModel() {
     // be one more thing to explain, and the common reason for it — Steam holding
     // the controller — is not a fault.
     m.battery        = m_controller->BatteryPercent();
+    m.platform       = EffectiveProfile().platform;
     m.startup        = m_startupEnabled;
-    m.enableOnLaunch = m_enableOnLaunch;
     m.notifications  = m_notificationsEnabled;
+    m.switching      = m_controller->IsSwitchingPlatform();
     return m;
 }
 
@@ -2198,9 +2261,12 @@ void TrayApp::OnPanelAction(TrayPanel::Action action) {
     case TrayPanel::Action::ModeSteam:      id = IDM_MODE_STEAM;       break;
     case TrayPanel::Action::ModeGame:       id = IDM_MODE_GAME;        break;
     case TrayPanel::Action::ModeProfile:    id = IDM_MODE_PROFILE;     break;
+    case TrayPanel::Action::PlatformXbox:   id = IDM_PLATFORM_XBOX;    break;
+    case TrayPanel::Action::PlatformPS:     id = IDM_PLATFORM_PS;      break;
+    case TrayPanel::Action::PlatformPS5:    id = IDM_PLATFORM_PS5;     break;
+    case TrayPanel::Action::PlatformSwitch: id = IDM_PLATFORM_SWITCH;  break;
     case TrayPanel::Action::Customize:      id = IDM_REMAP_BACK;       break;
     case TrayPanel::Action::Startup:        id = IDM_STARTUP;          break;
-    case TrayPanel::Action::EnableOnLaunch: id = IDM_ENABLE_ON_LAUNCH; break;
     case TrayPanel::Action::Notifications:  id = IDM_NOTIFICATIONS;    break;
     case TrayPanel::Action::OpenLog:        id = IDM_OPENLOG;          break;
     case TrayPanel::Action::Exit:           id = IDM_EXIT;             break;

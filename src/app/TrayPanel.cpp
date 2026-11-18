@@ -102,7 +102,6 @@ const wchar_t* ModeCaption(int mode) {
 const wchar_t* RowLabel(Action a) {
     switch (a) {
     case Action::Startup:        return L"Start with Windows";
-    case Action::EnableOnLaunch: return L"Enable on Launch";
     default:                     return L"Show Notifications";
     }
 }
@@ -122,9 +121,12 @@ const wchar_t* AutomationId(Action a) {
     case Action::ModeSteam:      return L"Mode.Steam";
     case Action::ModeGame:       return L"Mode.InGame";
     case Action::ModeProfile:    return L"Mode.Profile";
+    case Action::PlatformXbox:   return L"Platform.Xbox";
+    case Action::PlatformPS:     return L"Platform.PS4";
+    case Action::PlatformPS5:    return L"Platform.PS5";
+    case Action::PlatformSwitch: return L"Platform.Switch";
     case Action::Customize:      return L"CustomizeControls";
     case Action::Startup:        return L"StartWithWindows";
-    case Action::EnableOnLaunch: return L"EnableOnLaunch";
     case Action::Notifications:  return L"ShowNotifications";
     case Action::OpenLog:        return L"EventLog";
     case Action::Exit:           return L"Exit";
@@ -135,6 +137,7 @@ const wchar_t* AutomationId(Action a) {
 
 std::wstring StatusText(const Model& m) {
     if (m.deviceDisabled) return L"Controller unavailable";
+    if (m.switching)      return L"Switching platform...";
     if (!m.connected)     return L"No controller detected";
     if (!m.manual)        return m.controlOn ? L"On · Auto Mode" : L"Off · Auto Mode";
     return m.controlOn ? L"Active" : L"Off";
@@ -155,14 +158,20 @@ struct Layout {
 
     D2D1_RECT_F tile{}, mainSwitch{}, title{}, status{};
 
-    D2D1_RECT_F modeLabel{}, segTrack{}, seg[4]{}, caption{};
     float       div1 = 0.f, div2 = 0.f;
 
+    // Platform selection (first below div1)
+    D2D1_RECT_F platLabel{};
+    D2D1_RECT_F platTile{};
+    D2D1_RECT_F platTrack{};
+    D2D1_RECT_F platSeg[4]{};
+
+    // Customize controls (second below div1)
     D2D1_RECT_F customize{};
 
     int         rowCount = 0;
-    Action      rowAct[3]{};
-    D2D1_RECT_F row[3]{};
+    Action      rowAct[2]{};
+    D2D1_RECT_F row[2]{};
 
     D2D1_RECT_F footer{}, logBtn{}, exitBtn{};
 };
@@ -212,14 +221,6 @@ struct TrayPanel::Impl : PanelAccessibility::Host {
     bool  rounded = false;   // DWM is rounding and outlining the window for us
     bool  tracking = false;
     ULONGLONG dismissedAt = 0;
-
-    // How present the Enable on Launch row is, 0 (gone) to 1 (full height).
-    // Changing control mode adds or removes that row, and the window is its
-    // height; snapping between the two sizes read as the panel jumping. So the
-    // row eases in and out instead, and the window follows it a frame at a time.
-    float     launchT = 1.f;
-    float     animFrom = 1.f, animTo = 1.f;
-    ULONGLONG animStart = 0;
 
     // What a screen reader sees; made with the window and gone with it.
     std::unique_ptr<PanelAccessibility> a11y;
@@ -290,17 +291,10 @@ struct TrayPanel::Impl : PanelAccessibility::Host {
         // header shows under the title.
         control(Action::ToggleControl, Kind::Toggle, L"Steamless Mode", StatusText(m), m.controlOn, -1, 0, 0);
 
-        {
-            A11yElement g;
-            g.id = kA11yModes; g.kind = Kind::Group; g.name = L"Control mode";
-            g.help = ModeCaption(m.mode); g.automationId = L"ControlMode";
-            place(g, lay.segTrack);
-            t.elements.push_back(std::move(g));
-        }
-        static const Action modeActs[4] = { Action::ModeManual, Action::ModeSteam, Action::ModeGame, Action::ModeProfile };
-        for (int i = 0; i < 4; ++i)
-            control(modeActs[i], Kind::Radio, ModeLabel(i), ModeCaption(i), m.mode == i, kA11yModes, i + 1, 4);
-
+        control(Action::PlatformXbox, Kind::Radio, L"Xbox 360", L"", m.platform == ControllerPlatform::Xbox, -1, 1, 4);
+        control(Action::PlatformPS, Kind::Radio, L"PS4", L"", m.platform == ControllerPlatform::PlayStation, -1, 2, 4);
+        control(Action::PlatformPS5, Kind::Radio, L"PS5", L"", m.platform == ControllerPlatform::DualSense, -1, 3, 4);
+        control(Action::PlatformSwitch, Kind::Radio, L"Switch Pro", L"", m.platform == ControllerPlatform::Switch, -1, 4, 4);
         control(Action::Customize, Kind::Button, L"Customize Controls",
                 L"Bindings, trackpads, triggers, sticks", false, -1, 0, 0);
         for (int i = 0; i < lay.rowCount; ++i)
@@ -551,6 +545,108 @@ struct TrayPanel::Impl : PanelAccessibility::Host {
         Fill(D2D1::RectF(x + 3.f, y + 6.f, x + 3.f + fill, y + 10.f), 0.6f, rgb);
     }
 
+    void DrawSelectedPlatformIcon(const D2D1_RECT_F& r, ControllerPlatform plat) {
+        const float cx = (r.left + r.right) * 0.5f;
+        const float cy = (r.top + r.bottom) * 0.5f;
+
+        UINT32 col = 0x22c55e; // Xbox green default
+        if (plat == ControllerPlatform::PlayStation) {
+            col = 0x38bdf8; // PS4 light blue
+        } else if (plat == ControllerPlatform::DualSense) {
+            col = 0x60a5fa; // PS5 electric blue
+        } else if (plat == ControllerPlatform::Switch) {
+            col = 0xf43f5e; // Switch red
+        }
+
+        // 38x38 Tile background with subtle platform-tinted glow
+        Fill(r, 10.f, col, 0.16f);
+        Outline(r, 10.f, col, 0.65f, 1.2f);
+
+        if (plat == ControllerPlatform::Xbox) {
+            // Official Xbox Sphere / Orb Logo
+            const float orbCy = cy - 4.f;
+            const float R = 11.5f;
+
+            // Sphere base with depth
+            Fill(D2D1::RectF(cx - R, orbCy - R, cx + R, orbCy + R), R, 0x0d3813);
+            Outline(D2D1::RectF(cx - R, orbCy - R, cx + R, orbCy + R), R, 0x22c55e, 0.85f, 1.4f);
+
+            // The iconic Xbox 3D carved "X"
+            Line(cx, orbCy, -7.5f, -7.5f, 7.5f, 7.5f, 0xffffff, 2.6f);
+            Line(cx, orbCy, -7.5f, 7.5f, 7.5f, -7.5f, 0xffffff, 2.6f);
+
+            // Carved top and bottom V-notches in dark background
+            Fill(D2D1::RectF(cx - 3.5f, orbCy - R, cx + 3.5f, orbCy - 2.5f), 1.0f, 0x0d3813);
+            Fill(D2D1::RectF(cx - 3.5f, orbCy + 2.5f, cx + 3.5f, orbCy + R), 1.0f, 0x0d3813);
+
+            // Green center glow core
+            Dot(cx, orbCy, 2.0f, 0x22c55e, 0.95f);
+
+            // Crisp "360" badge below
+            Text(L"360", D2D1::RectF(r.left, cy + 6.f, r.right, r.bottom - 1.f), 9.0f,
+                 DWRITE_FONT_WEIGHT_BOLD, 0x22c55e, 1.f, true, DWRITE_TEXT_ALIGNMENT_CENTER);
+
+        } else if (plat == ControllerPlatform::PlayStation) {
+            // Official PlayStation Monogram Logo (PS4)
+            const float psCy = cy - 4.f;
+
+            // 'P' vertical stem
+            Fill(D2D1::RectF(cx - 6.0f, psCy - 8.5f, cx - 3.2f, psCy + 3.0f), 0.5f, col);
+            // 'P' upper loop
+            Outline(D2D1::RectF(cx - 5.0f, psCy - 8.5f, cx + 2.0f, psCy - 1.5f), 3.0f, col, 1.0f, 2.4f);
+
+            // 'S' reclining perspective ribbons
+            Line(cx, psCy, -7.5f, 3.5f, 4.5f, 3.5f, col, 1.7f);
+            Line(cx, psCy, -5.5f, 6.2f, 7.0f, 6.2f, col, 1.7f);
+            Line(cx, psCy, -7.5f, 8.8f, 3.5f, 8.8f, col, 1.7f);
+
+            // "PS4" text badge below
+            Text(L"PS4", D2D1::RectF(r.left, cy + 6.f, r.right, r.bottom - 1.f), 9.0f,
+                 DWRITE_FONT_WEIGHT_BOLD, col, 1.f, true, DWRITE_TEXT_ALIGNMENT_CENTER);
+
+        } else if (plat == ControllerPlatform::DualSense) {
+            // Official PlayStation 5 Monogram Logo (DualSense White & Electric Blue)
+            const float psCy = cy - 4.f;
+
+            // 'P' vertical stem (White)
+            Fill(D2D1::RectF(cx - 6.0f, psCy - 8.5f, cx - 3.2f, psCy + 3.0f), 0.5f, 0xffffff);
+            // 'P' upper loop (White)
+            Outline(D2D1::RectF(cx - 5.0f, psCy - 8.5f, cx + 2.0f, psCy - 1.5f), 3.0f, 0xffffff, 1.0f, 2.4f);
+
+            // 'S' reclining perspective ribbons (Electric Blue)
+            Line(cx, psCy, -7.5f, 3.5f, 4.5f, 3.5f, col, 1.7f);
+            Line(cx, psCy, -5.5f, 6.2f, 7.0f, 6.2f, col, 1.7f);
+            Line(cx, psCy, -7.5f, 8.8f, 3.5f, 8.8f, col, 1.7f);
+
+            // "PS5" text badge below
+            Text(L"PS5", D2D1::RectF(r.left, cy + 6.f, r.right, r.bottom - 1.f), 9.0f,
+                 DWRITE_FONT_WEIGHT_BOLD, 0xffffff, 1.f, true, DWRITE_TEXT_ALIGNMENT_CENTER);
+
+        } else {
+            // Official Nintendo Switch Joy-Con Logo
+            const float swCy = cy - 4.f;
+            const float joyH = 17.f;
+            const float joyW = 7.5f;
+            const float gap = 2.5f;
+
+            // Left Joy-Con: Solid neon-red capsule with hollow circular stick cutout near top
+            const D2D1_RECT_F leftJoy = D2D1::RectF(cx - gap - joyW, swCy - joyH * 0.5f, cx - gap, swCy + joyH * 0.5f);
+            Fill(leftJoy, 3.8f, col, 1.0f);
+            // Hollow circular stick cutout
+            Dot(cx - gap - joyW * 0.5f, swCy - 3.5f, 1.8f, kBg, 1.0f);
+
+            // Right Joy-Con: Outlined neon-red capsule with solid stick near bottom
+            const D2D1_RECT_F rightJoy = D2D1::RectF(cx + gap, swCy - joyH * 0.5f, cx + gap + joyW, swCy + joyH * 0.5f);
+            Outline(rightJoy, 3.8f, col, 1.0f, 1.5f);
+            // Solid filled circular stick
+            Dot(cx + gap + joyW * 0.5f, swCy + 3.5f, 1.8f, col, 1.0f);
+
+            // "PRO" text badge below
+            Text(L"PRO", D2D1::RectF(r.left, cy + 6.f, r.right, r.bottom - 1.f), 9.0f,
+                 DWRITE_FONT_WEIGHT_BOLD, col, 1.f, true, DWRITE_TEXT_ALIGNMENT_CENTER);
+        }
+    }
+
     // ---- layout -----------------------------------------------------------
 
     void AddHit(const D2D1_RECT_F& r, Action a, bool enabled = true, float radius = 9.f) {
@@ -582,47 +678,48 @@ struct TrayPanel::Impl : PanelAccessibility::Host {
         AddHit(lo.mainSwitch, Action::ToggleControl, model.connected && model.manual, 13.f);
         y += 68.f;
 
-        // Control mode.
-        lo.modeLabel = D2D1::RectF(kPad, y, kWidth - kPad, y + 12);
-        lo.segTrack  = D2D1::RectF(kPad, y + 20, kWidth - kPad, y + 58);
-        const float segW = ((lo.segTrack.right - lo.segTrack.left) - 6.f - 6.f) / 4.f;
-        static const Action modeActs[4] = { Action::ModeManual, Action::ModeSteam, Action::ModeGame, Action::ModeProfile };
-        for (int i = 0; i < 4; ++i) {
-            const float x0 = lo.segTrack.left + 3.f + static_cast<float>(i) * (segW + 2.f);
-            lo.seg[i] = D2D1::RectF(x0, lo.segTrack.top + 3.f, x0 + segW - (i < 3 ? 2.f : 0.f), lo.segTrack.bottom - 3.f);
-            AddHit(lo.seg[i], modeActs[i], true, 8.f);
-        }
-        lo.caption = D2D1::RectF(kPad, y + 67, kWidth - kPad, y + 84);
-        y += 100.f;
-
         lo.div1 = y;  y += 1.f;
-        lo.customize = D2D1::RectF(8, y + 8, kWidth - 8, y + 64);
+        y += 8.f;
+
+        // Target platform selection: placed FIRST for easy access
+        lo.platLabel = D2D1::RectF(kPad, y, kWidth - kPad, y + 14.f);
+        y += 18.f;
+
+        lo.platTile  = D2D1::RectF(kPad, y, kPad + 38.f, y + 38.f);
+        lo.platTrack = D2D1::RectF(kPad + 38.f + 8.f, y, kWidth - kPad, y + 38.f);
+
+        const float pSegW = ((lo.platTrack.right - lo.platTrack.left) - 6.f - 9.f) / 4.f;
+        static const Action platActs[4] = { Action::PlatformXbox, Action::PlatformPS, Action::PlatformPS5, Action::PlatformSwitch };
+        for (int i = 0; i < 4; ++i) {
+            const float x0 = lo.platTrack.left + 3.f + static_cast<float>(i) * (pSegW + 3.f);
+            lo.platSeg[i] = D2D1::RectF(x0, lo.platTrack.top + 3.f, x0 + pSegW, lo.platTrack.bottom - 3.f);
+            AddHit(lo.platSeg[i], platActs[i], true, 7.f);
+        }
+        y += 46.f;
+
+        // Customize controls row: placed right below target platform
+        lo.customize = D2D1::RectF(8.f, y, kWidth - 8.f, y + 56.f);
         AddHit(lo.customize, Action::Customize, true, 11.f);
-        y += 72.f;
+        y += 62.f;
 
         lo.div2 = y;  y += 1.f;
         y += 6.f;
         lo.rowAct[lo.rowCount++] = Action::Startup;
-        if (model.manual || launchT > 0.f) lo.rowAct[lo.rowCount++] = Action::EnableOnLaunch;
         lo.rowAct[lo.rowCount++] = Action::Notifications;
         for (int i = 0; i < lo.rowCount; ++i) {
-            const bool launch = (lo.rowAct[i] == Action::EnableOnLaunch);
-            const float h = launch ? 40.f * launchT : 40.f;
-            lo.row[i] = D2D1::RectF(8, y, kWidth - 8, y + h);
-            // A row on its way out is not something to click.
-            if (!launch || model.manual) AddHit(lo.row[i], lo.rowAct[i]);
-            y += h;
+            lo.row[i] = D2D1::RectF(8, y, kWidth - 8, y + 40.f);
+            AddHit(lo.row[i], lo.rowAct[i]);
+            y += 40.f;
         }
         y += 6.f;
 
-        lo.footer = D2D1::RectF(0, y, kWidth, y + 51);
-        const float logW  = 12.f + 16.f + 8.f + TextWidth(L"Event log", 13.f, DWRITE_FONT_WEIGHT_MEDIUM) + 12.f;
-        const float exitW = 12.f + TextWidth(L"Exit", 13.f, DWRITE_FONT_WEIGHT_MEDIUM) + 8.f + 16.f + 12.f;
-        lo.logBtn  = D2D1::RectF(8, y + 9, 8 + logW, y + 43);
-        lo.exitBtn = D2D1::RectF(kWidth - 8 - exitW, y + 9, kWidth - 8, y + 43);
+        // Footer: 2 stacked full-width buttons, Exit as the last one
+        lo.footer  = D2D1::RectF(0, y, kWidth, y + 88.f);
+        lo.logBtn  = D2D1::RectF(12.f, y + 8.f, kWidth - 12.f, y + 42.f);
+        lo.exitBtn = D2D1::RectF(12.f, y + 46.f, kWidth - 12.f, y + 80.f);
         AddHit(lo.logBtn, Action::OpenLog, true, 8.f);
         AddHit(lo.exitBtn, Action::Exit, true, 8.f);
-        lo.height = y + 51.f;
+        lo.height  = y + 88.f;
 
         lay = lo;
 
@@ -644,6 +741,11 @@ struct TrayPanel::Impl : PanelAccessibility::Host {
                a == Action::ModeGame   || a == Action::ModeProfile;
     }
 
+    static bool IsPlatformAction(Action a) {
+        return a == Action::PlatformXbox || a == Action::PlatformPS ||
+               a == Action::PlatformPS5  || a == Action::PlatformSwitch;
+    }
+
     bool IsActive(const Hit& h) const {
         switch (h.a) {
         case Action::ModeManual:  return model.mode == 0;
@@ -654,10 +756,19 @@ struct TrayPanel::Impl : PanelAccessibility::Host {
         }
     }
 
+    bool IsPlatformActive(const Hit& h) const {
+        switch (h.a) {
+        case Action::PlatformXbox:   return model.platform == ControllerPlatform::Xbox;
+        case Action::PlatformPS:     return model.platform == ControllerPlatform::PlayStation;
+        case Action::PlatformPS5:    return model.platform == ControllerPlatform::DualSense;
+        case Action::PlatformSwitch: return model.platform == ControllerPlatform::Switch;
+        default: return false;
+        }
+    }
+
     bool RowOn(Action a) const {
         switch (a) {
         case Action::Startup:        return model.startup;
-        case Action::EnableOnLaunch: return model.enableOnLaunch;
         default:                     return model.notifications;
         }
     }
@@ -777,7 +888,7 @@ struct TrayPanel::Impl : PanelAccessibility::Host {
         // Status line: dot, text, and the battery when there is a reading.
         {
             const std::wstring status = StatusText(m);
-            const UINT32 dotCol = m.deviceDisabled ? kWarn : live ? kOn : kIdle;
+            const UINT32 dotCol = m.deviceDisabled ? kWarn : m.switching ? 0xf59e0b : live ? kOn : kIdle;
             float x = lo.status.left;
             const float cy = (lo.status.top + lo.status.bottom) * 0.5f;
             Dot(x + 3.5f, cy, 3.5f, dotCol);
@@ -801,29 +912,37 @@ struct TrayPanel::Impl : PanelAccessibility::Host {
         const int mainHit = HitIndexFor(Action::ToggleControl);
         DrawSwitch(lo.mainSwitch, m.controlOn, mainHit >= 0 && hits[mainHit].enabled);
 
-        // Control mode: four options in one track, with a line saying what the
-        // selected one means.
-        Text(L"CONTROL MODE", lo.modeLabel, 10.5f, DWRITE_FONT_WEIGHT_SEMI_BOLD, kText3, 1.f, true,
-             DWRITE_TEXT_ALIGNMENT_LEADING, 1.4f);
-        Fill(lo.segTrack, 11.f, kInset);
-        for (int i = 0; i < 4; ++i) {
-            const bool active = (m.mode == i);
-            if (active) {
-                Fill(lo.seg[i], 8.f, kAccent, 0.16f);
-                Outline(lo.seg[i], 8.f, kAccent, 0.55f);
-            } else {
-                DrawHoverFor(i == 0 ? Action::ModeManual : i == 1 ? Action::ModeSteam
-                           : i == 2 ? Action::ModeGame : Action::ModeProfile, lo.seg[i], 8.f, 0xffffff, 0.06f);
-            }
-            Text(ModeLabel(i), lo.seg[i], 13.f, DWRITE_FONT_WEIGHT_SEMI_BOLD, active ? 0xffffff : kText2, 1.f,
-                 false, DWRITE_TEXT_ALIGNMENT_CENTER);
-        }
-        Text(ModeCaption(m.mode), lo.caption, 12.5f, DWRITE_FONT_WEIGHT_REGULAR, kText2);
-
         Fill(D2D1::RectF(0, lo.div1, kWidth, lo.div1 + 1), 0.f, 0xffffff, 0.07f);
 
-        // Customize Controls: the one accented row, because it is the one that
-        // leads somewhere.
+        // Target Platform: header, prominent 38x38 selected controller icon, and segmented switch buttons
+        Text(L"TARGET PLATFORM", lo.platLabel, 10.5f, DWRITE_FONT_WEIGHT_SEMI_BOLD, kText3, 1.f, true,
+             DWRITE_TEXT_ALIGNMENT_LEADING, 1.4f);
+
+        // Single prominent selected controller icon (matching Steamless mode tile size)
+        DrawSelectedPlatformIcon(lo.platTile, m.platform);
+
+        // Segmented buttons track on the right
+        Fill(lo.platTrack, 9.f, kInset);
+        static const wchar_t* const platLabels[4] = { L"Xbox 360", L"PS4", L"PS5", L"Switch Pro" };
+        static const UINT32 platAccents[4] = { 0x22c55e, 0x38bdf8, 0x60a5fa, 0xf43f5e };
+        static const Action platActs[4] = { Action::PlatformXbox, Action::PlatformPS, Action::PlatformPS5, Action::PlatformSwitch };
+        for (int i = 0; i < 4; ++i) {
+            const bool active = (i == 0 && m.platform == ControllerPlatform::Xbox) ||
+                                (i == 1 && m.platform == ControllerPlatform::PlayStation) ||
+                                (i == 2 && m.platform == ControllerPlatform::DualSense) ||
+                                (i == 3 && m.platform == ControllerPlatform::Switch);
+            const UINT32 actCol = platAccents[i];
+            if (active) {
+                Fill(lo.platSeg[i], 7.f, actCol, 0.18f);
+                Outline(lo.platSeg[i], 7.f, actCol, 0.65f, 1.2f);
+            } else {
+                DrawHoverFor(platActs[i], lo.platSeg[i], 7.f, 0xffffff, 0.06f);
+            }
+            Text(platLabels[i], lo.platSeg[i], 11.5f, DWRITE_FONT_WEIGHT_SEMI_BOLD, active ? 0xffffff : kText2, 1.f,
+                 false, DWRITE_TEXT_ALIGNMENT_CENTER);
+        }
+
+        // Customize Controls: placed right below Target Platform
         {
             const int ci = HitIndexFor(Action::Customize);
             const bool hot = (ci >= 0 && (ci == hover || (focusVisible && ci == focus)));
@@ -841,41 +960,36 @@ struct TrayPanel::Impl : PanelAccessibility::Host {
 
         Fill(D2D1::RectF(0, lo.div2, kWidth, lo.div2 + 1), 0.f, 0xffffff, 0.07f);
 
-        // Settings as switches. Enable on Launch only exists in Manual mode; the
-        // auto modes never make an at-launch decision.
+        // Settings switches
         for (int i = 0; i < lo.rowCount; ++i) {
-            // Drawn at full height and clipped to the row's current one, so a
-            // row that is shrinking is cut off rather than squashed.
-            const D2D1_RECT_F full = D2D1::RectF(lo.row[i].left, lo.row[i].top, lo.row[i].right, lo.row[i].top + 40.f);
-            ComPtr<ID2D1Layer> layer;
-            const bool partial = (lo.rowAct[i] == Action::EnableOnLaunch && launchT < 1.f);
-            if (partial) {
-                if (launchT <= 0.f) continue;
-                if (SUCCEEDED(rt->CreateLayer(nullptr, layer.GetAddressOf())))
-                    rt->PushLayer(D2D1::LayerParameters(lo.row[i], nullptr, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE,
-                                                        D2D1::IdentityMatrix(), launchT), layer.Get());
-            }
-            DrawHoverFor(lo.rowAct[i], full, 9.f, 0xffffff, 0.05f);
+            DrawHoverFor(lo.rowAct[i], lo.row[i], 9.f, 0xffffff, 0.05f);
             Text(RowLabel(lo.rowAct[i]),
-                 D2D1::RectF(full.left + 12.f, full.top, full.right - 60.f, full.bottom),
+                 D2D1::RectF(lo.row[i].left + 12.f, lo.row[i].top, lo.row[i].right - 60.f, lo.row[i].bottom),
                  14.f, DWRITE_FONT_WEIGHT_REGULAR, kText);
-            const float sx = full.right - 8.f - 36.f;
-            const float sy = (full.top + full.bottom) * 0.5f - 10.f;
+            const float sx = lo.row[i].right - 8.f - 36.f;
+            const float sy = (lo.row[i].top + lo.row[i].bottom) * 0.5f - 10.f;
             DrawSwitch(D2D1::RectF(sx, sy, sx + 36.f, sy + 20.f), RowOn(lo.rowAct[i]), true);
-            if (layer) rt->PopLayer();
         }
 
-        // Footer.
+        // Footer with 2 full-width stacked buttons (Exit as the last one)
         Fill(lo.footer, 0.f, kFooter);
         Fill(D2D1::RectF(0, lo.footer.top, kWidth, lo.footer.top + 1), 0.f, 0xffffff, 0.07f);
+
+        // Event log button (wide)
+        Fill(lo.logBtn, 8.f, 0xffffff, 0.03f);
+        Outline(lo.logBtn, 8.f, kBorder, 0.45f, 1.f);
         DrawHoverFor(Action::OpenLog, lo.logBtn, 8.f, 0xffffff, 0.07f);
-        DrawHoverFor(Action::Exit, lo.exitBtn, 8.f, 0xffffff, 0.07f);
-        IconList(lo.logBtn.left + 12.f, (lo.logBtn.top + lo.logBtn.bottom) * 0.5f - 8.f, kText2);
-        Text(L"Event log", D2D1::RectF(lo.logBtn.left + 36.f, lo.logBtn.top, lo.logBtn.right, lo.logBtn.bottom),
+        IconList(lo.logBtn.left + 14.f, (lo.logBtn.top + lo.logBtn.bottom) * 0.5f - 8.f, kText2);
+        Text(L"Event log", D2D1::RectF(lo.logBtn.left + 38.f, lo.logBtn.top, lo.logBtn.right - 14.f, lo.logBtn.bottom),
              13.f, DWRITE_FONT_WEIGHT_MEDIUM, kText2);
-        Text(L"Exit", D2D1::RectF(lo.exitBtn.left + 12.f, lo.exitBtn.top, lo.exitBtn.right, lo.exitBtn.bottom),
+
+        // Exit button (wide, last button at the bottom)
+        Fill(lo.exitBtn, 8.f, 0xffffff, 0.03f);
+        Outline(lo.exitBtn, 8.f, kBorder, 0.45f, 1.f);
+        DrawHoverFor(Action::Exit, lo.exitBtn, 8.f, 0xef4444, 0.12f);
+        IconExit(lo.exitBtn.left + 14.f, (lo.exitBtn.top + lo.exitBtn.bottom) * 0.5f - 8.f, kText2);
+        Text(L"Exit", D2D1::RectF(lo.exitBtn.left + 38.f, lo.exitBtn.top, lo.exitBtn.right - 14.f, lo.exitBtn.bottom),
              13.f, DWRITE_FONT_WEIGHT_MEDIUM, kText2);
-        IconExit(lo.exitBtn.right - 28.f, (lo.exitBtn.top + lo.exitBtn.bottom) * 0.5f - 8.f, kText2);
 
         // Windows 10 has no rounded corners or outline to lend us.
         if (!rounded) Outline(D2D1::RectF(0, 0, kWidth, lo.height), 0.f, kBorder, 1.f);
@@ -897,34 +1011,10 @@ struct TrayPanel::Impl : PanelAccessibility::Host {
         if (!force && next == model) return;
         model = next;
 
-        const float target = model.manual ? 1.f : 0.f;
-        if (target != animTo) {
-            animFrom  = launchT;
-            animTo    = target;
-            animStart = GetTickCount64();
-            SetTimer(hwnd, kAnimTimer, kAnimFrameMs, nullptr);
-        }
-
         const float oldH = lay.height;
         BuildLayout();
         if (lay.height != oldH) ResizeKeepingBottom();
         InvalidateRect(hwnd, nullptr, FALSE);
-    }
-
-    // One frame of the row's ease-out. Redrawn on the spot rather than left to
-    // the next WM_PAINT, so the window and what is in it change together.
-    void AnimateStep() {
-        const float t = std::min(1.f, static_cast<float>(GetTickCount64() - animStart) / static_cast<float>(kAnimMs));
-        const float inv = 1.f - t;
-        launchT = animFrom + (animTo - animFrom) * (1.f - inv * inv * inv);
-        if (t >= 1.f) {
-            launchT = animTo;
-            KillTimer(hwnd, kAnimTimer);
-        }
-        BuildLayout();
-        ResizeKeepingBottom();
-        InvalidateRect(hwnd, nullptr, FALSE);
-        UpdateWindow(hwnd);
     }
 
     void ResizeKeepingBottom() {
@@ -942,6 +1032,8 @@ struct TrayPanel::Impl : PanelAccessibility::Host {
         const Action a = hits[i].a;
         // Choosing what is already chosen would only re-run its side effects.
         if (IsModeAction(a) && IsActive(hits[i])) return;
+        if (IsPlatformAction(a) && IsPlatformActive(hits[i])) return;
+        if (model.switching && IsPlatformAction(a)) return;
 
         // Copied first: closing the panel is not allowed to take the handler
         // with it, and what the action opens should not be fighting a panel
@@ -969,9 +1061,9 @@ struct TrayPanel::Impl : PanelAccessibility::Host {
     }
 
     void StepSegment(int dir) {
-        if (focus < 0 || !IsModeAction(hits[focus].a)) return;
+        if (focus < 0 || !IsPlatformAction(hits[focus].a)) return;
         const int j = focus + dir;
-        if (j >= 0 && j < static_cast<int>(hits.size()) && IsModeAction(hits[j].a)) {
+        if (j >= 0 && j < static_cast<int>(hits.size()) && IsPlatformAction(hits[j].a)) {
             focus = j;
             focusVisible = true;
             PublishAccess();
@@ -1081,8 +1173,7 @@ struct TrayPanel::Impl : PanelAccessibility::Host {
             return DLGC_WANTALLKEYS;
 
         case WM_TIMER:
-            if (wp == kRefreshTimer)   Refresh(false);
-            else if (wp == kAnimTimer) AnimateStep();
+            if (wp == kRefreshTimer) Refresh(false);
             return 0;
 
         case WM_ACTIVATE:
@@ -1126,6 +1217,7 @@ bool TrayPanel::RecentlyDismissed() const {
 }
 
 void TrayPanel::Close() { m_d->CloseWindow_(); }
+void TrayPanel::Refresh(bool force) { if (m_d) m_d->Refresh(force); }
 
 void TrayPanel::Show(HINSTANCE hInst, POINT anchor, ModelProvider provider, ActionHandler handler) {
     Impl& d = *m_d;
@@ -1166,8 +1258,6 @@ void TrayPanel::Show(HINSTANCE hInst, POINT anchor, ModelProvider provider, Acti
     d.formats.clear();
     d.hover = d.focus = -1;
     d.focusVisible = false;
-    // Opens already at the right height; only a change while it is up animates.
-    d.launchT = d.animFrom = d.animTo = d.model.manual ? 1.f : 0.f;
     d.a11y = std::make_unique<PanelAccessibility>(d);
     d.BuildLayout();
     // With a screen reader running, start with keyboard focus on the first control

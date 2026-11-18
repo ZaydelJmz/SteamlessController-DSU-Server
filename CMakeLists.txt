@@ -261,6 +261,8 @@ add_executable(SteamlessController WIN32
     src/app/InputInjection.cpp
     src/app/SteamWatcher.cpp
     src/app/DeviceRestart.cpp
+    src/app/DsuServer.cpp
+    src/app/ViiperClient.cpp
     src/app/EventLog.cpp
     src/app/ForegroundWatcher.cpp
     src/app/GameLibrary.cpp
@@ -313,6 +315,8 @@ add_executable(RemapWindowProbe
     src/app/InputInjection.cpp
     src/app/SteamWatcher.cpp
     src/app/DeviceRestart.cpp
+    src/app/DsuServer.cpp
+    src/app/ViiperClient.cpp
     src/app/EventLog.cpp
     src/app/ForegroundWatcher.cpp
     src/app/GameLibrary.cpp

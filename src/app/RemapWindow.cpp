@@ -386,6 +386,13 @@ R"HTML(
         <select id="diag-LPAD" class="mode-select"></select>
       </div>
     </div>
+    <div class="row mode-row" id="haptic-row-LPAD">
+      <div class="row-top">
+        <span class="pos-label">Movement Haptics</span>
+        <div class="connector"></div>
+        <select id="haptic-LPAD" class="mode-select"></select>
+      </div>
+    </div>
     <div class="pad-note" id="note-LPAD">Press the outer part of the pad for a direction, or the middle for the trackpad click.</div>
     <div id="row-LPADup" class="row"></div>
     <div id="row-LPADdown" class="row"></div>
@@ -428,6 +435,13 @@ R"HTML(
         <span class="pos-label">Diagonals</span>
         <div class="connector"></div>
         <select id="diag-RPAD" class="mode-select"></select>
+      </div>
+    </div>
+    <div class="row mode-row" id="haptic-row-RPAD">
+      <div class="row-top">
+        <span class="pos-label">Movement Haptics</span>
+        <div class="connector"></div>
+        <select id="haptic-RPAD" class="mode-select"></select>
       </div>
     </div>
     <div class="pad-note" id="note-RPAD">Press the outer part of the pad for a direction, or the middle for the trackpad click.</div>
@@ -662,6 +676,7 @@ var DEFAULTS = {L4:'leftMouse',L5:'none',R4:'leftMouse',R5:'none',QAM:'none',LPA
 var DEFAULT_MODES = {LPAD:'scroll',RPAD:'pointer'};
 var DEFAULT_DIRS  = {LPAD:'natural',RPAD:'natural'};
 var DEFAULT_DIAGS = {LPAD:'eight',RPAD:'eight'};
+var DEFAULT_HAPTICS = {LPAD:'on',RPAD:'on'};
 // Percent of the built-in scroll or pointer scale. Keep in step with
 // kScrollSpeedDefault in TrackpadConfig.h.
 var DEFAULT_SPEEDS = {LPAD:100,RPAD:100};
@@ -695,6 +710,7 @@ var diags = {LPAD:'eight',RPAD:'eight'};
 // Scroll speed per pad, kept for every pad for the same reason as the two
 // above: switching modes back and forth must not lose the choice.
 var speeds = {LPAD:100,RPAD:100};
+var haptics = {LPAD:'on',RPAD:'on'};
 var platform = 'xbox';
 // This game follows the default profile's controls instead of carrying its
 // own. Only ever true for a game — the default has nothing to follow.
@@ -708,8 +724,8 @@ function modeOptions(){
     {id:'none',    label:'None'},
     {id:'pointer', label:'Mouse Pointer'},
     {id:'scroll',  label:'Scroll Wheel'},
-    {id:'ds4',     label:platform==='ps'?'DS4 Touchpad'
-                                        :'DS4 Touchpad (PlayStation only)'},
+    {id:'ds4',     label:(platform==='ps'||platform==='ps5')?'PlayStation Touchpad'
+                                        :'PlayStation Touchpad (PlayStation only)'},
     {id:'dpad',    label:'Directional Pad'},
     {id:'button',  label:'Single Button'},
   ];
@@ -722,9 +738,15 @@ var DIAG_OPTIONS = [
   {id:'eight', label:'8-way (press two at once)'},
   {id:'four',  label:'4-way (one at a time)'},
 ];
+var HAPTIC_OPTIONS = [
+  {id:'on',  label:'Enabled'},
+  {id:'off', label:'Disabled'},
+];
 var PLATFORM_OPTIONS = [
-  {id:'xbox', label:'Xbox Controller'},
-  {id:'ps',   label:'PlayStation Controller'},
+  {id:'xbox',   label:'Xbox 360 Controller'},
+  {id:'ps',     label:'PlayStation 4 (DualShock 4)'},
+  {id:'ps5',    label:'PlayStation 5 (DualSense)'},
+  {id:'switch', label:'Nintendo Switch Pro'},
 ];
 var listening = null;
 // Modifier bits, matching BackButtonBinding::Modifier.
@@ -853,7 +875,7 @@ var INPUTS = [
   {id:'touchKeyboard',glyph:'KBD',  label:'Touch Keyboard',bg:'#2a3a2a',fg:'#9ac89a'},
   {id:'guide',     glyph:'GDE',     label:'Guide Button',bg:'#2a3a2a',fg:'#9ac89a',
    ps:{glyph:'PS',label:'PS Button',bg:'#2a3a2a',fg:'#9ac89a'}},
-  {id:'touchpadClick',glyph:'TPC',  label:'PS Touchpad Click',bg:'#2a3a2a',fg:'#9ac89a'},
+  {id:'touchpadClick',glyph:'TPC',  label:'PlayStation Touchpad Click',bg:'#2a3a2a',fg:'#9ac89a'},
   {id:'none',      glyph:'OFF',     label:'Off',         bg:'#1e2d3d',fg:'#5a7a9a'},
 ];
 var byId = {};
@@ -862,7 +884,7 @@ INPUTS.forEach(function(t){byId[t.id]=t;});
 // time rather than baked into the catalog, so switching platform only has to
 // render again.
 function viewOf(t){
-  return (platform==='ps'&&t.ps)?t.ps:t;
+  return ((platform==='ps'||platform==='ps5')&&t.ps)?t.ps:t;
 }
 
 // Picker layout: each inner array is one row in the manual-pick panel.
@@ -1058,17 +1080,23 @@ function setSpeed(padId,value){
 function setDiag(padId,diagId){
   diags[padId]=diagId;
 }
+function setHaptic(padId,hapticId){
+  if(modes[padId]!=='none'){
+    haptics[padId]=hapticId;
+  }
+}
 function resetDefaults(){
   cancelListening();
   platform=DEFAULT_PLATFORM;
   bindings={};
   ROWS.forEach(function(r){bindings[r.id]=DEFAULTS[r.id];});
-  modes={}; dirs={}; diags={}; speeds={};
+  modes={}; dirs={}; diags={}; speeds={}; haptics={};
   PADS.forEach(function(p){
     modes[p]=DEFAULT_MODES[p];
     dirs[p]=DEFAULT_DIRS[p];
     diags[p]=DEFAULT_DIAGS[p];
     speeds[p]=DEFAULT_SPEEDS[p];
+    haptics[p]=DEFAULT_HAPTICS[p];
   });
   triggerReset();
   rumbleReset();
@@ -1095,6 +1123,7 @@ function currentProfile(){
     p[x+'dir']=dirs[x];
     p[x+'diag']=diags[x];
     p[x+'speed']=String(speeds[x]);
+    p[x+'haptic']=(modes[x]==='none')?'off':haptics[x];
   });
   triggerToProfile(p);
   rumbleToProfile(p);
@@ -1119,11 +1148,12 @@ function loadProfileInto(p){
   ROWS.forEach(function(r){
     bindings[r.id]=p.hasOwnProperty(r.id)?p[r.id]:DEFAULTS[r.id];
   });
-  modes={}; dirs={}; diags={}; speeds={};
+  modes={}; dirs={}; diags={}; speeds={}; haptics={};
   PADS.forEach(function(x){
     modes[x]=p.hasOwnProperty(x+'mode')?p[x+'mode']:DEFAULT_MODES[x];
     dirs[x] =p.hasOwnProperty(x+'dir') ?p[x+'dir'] :DEFAULT_DIRS[x];
     diags[x]=p.hasOwnProperty(x+'diag')?p[x+'diag']:DEFAULT_DIAGS[x];
+    haptics[x]=p.hasOwnProperty(x+'haptic')?p[x+'haptic']:DEFAULT_HAPTICS[x];
     // clampSpeed turns a missing key into the default, so this needs no
     // hasOwnProperty guard of its own.
     speeds[x]=clampSpeed(x,p[x+'speed']);
@@ -1449,6 +1479,7 @@ function renderModeSelects(){
     fillSelect('mode-'+padId,opts,modes[padId]);
     fillSelect('dir-'+padId,DIR_OPTIONS,dirs[padId]);
     fillSelect('diag-'+padId,DIAG_OPTIONS,diags[padId]);
+    fillSelect('haptic-'+padId,HAPTIC_OPTIONS,haptics[padId]);
     var speedSel=document.getElementById('speed-'+padId);
     if(speedSel){
       // The slider travels over stop INDEXES, which is what makes the spacing
@@ -1477,6 +1508,19 @@ function renderPadRows(){
     if(speedRow) speedRow.style.display=(mode==='scroll'||mode==='pointer')?'':'none';
     var diagRow=document.getElementById('diag-row-'+padId);
     if(diagRow) diagRow.style.display=(mode==='dpad')?'':'none';
+    var hapticRow=document.getElementById('haptic-row-'+padId);
+    var hapticSel=document.getElementById('haptic-'+padId);
+    if(hapticSel){
+      if(mode==='none'){
+        hapticSel.disabled=true;
+        hapticSel.value='off';
+        if(hapticRow) hapticRow.className='row mode-row inherited';
+      }else{
+        hapticSel.disabled=false;
+        hapticSel.value=haptics[padId];
+        if(hapticRow) hapticRow.className='row mode-row';
+      }
+    }
     // Only a directional pad splits its surface, so only it needs explaining.
     var note=document.getElementById('note-'+padId);
     if(note) note.style.display=(mode==='dpad')?'':'none';
@@ -1595,6 +1639,8 @@ PADS.forEach(function(padId){
   if(dirSel) dirSel.addEventListener('change',function(e){setDir(padId,e.target.value);});
   var diagSel=document.getElementById('diag-'+padId);
   if(diagSel) diagSel.addEventListener('change',function(e){setDiag(padId,e.target.value);});
+  var hapticSel=document.getElementById('haptic-'+padId);
+  if(hapticSel) hapticSel.addEventListener('change',function(e){setHaptic(padId,e.target.value);});
   var speedSel=document.getElementById('speed-'+padId);
   // 'input' rather than 'change': the readout has to follow the thumb while it
   // is being dragged, not only when it is let go.
@@ -2261,14 +2307,14 @@ document.getElementById('rail').addEventListener('keydown',function(e){
   document.getElementById('rail-'+SECTION_IDS[i]).focus();
 });
 
-var PAD_MODE_SHORT={none:'Off',pointer:'Mouse pointer',scroll:'Scroll wheel',ds4:'DS4 touchpad',dpad:'Directional pad',button:'Single button'};
+var PAD_MODE_SHORT={none:'Off',pointer:'Mouse pointer',scroll:'Scroll wheel',ds4:'PlayStation Touchpad',dpad:'Directional pad',button:'Single button'};
 var STICK_MODE_SHORT={'default':'Default',circle:'Circle',square:'Square'};
 function railSummaries(){
   var dual=TRIGGERS.filter(function(t){return tmodes[t]==='dual';});
   var bound=['L4','L5','R4','R5','QAM'].filter(function(id){return bindings[id]&&bindings[id]!=='none';}).length;
   var ls=sticks.LS?sticks.LS.mode:'default', rs=sticks.RS?sticks.RS.mode:'default';
   return {
-    general:(platform==='ps'?'PlayStation':'Xbox')+' \u00b7 Rumble '+rumbleLabel(rumble),
+    general:(platform==='switch'?'Nintendo Switch Pro':platform==='ps5'?'PlayStation 5':platform==='ps'?'PlayStation 4':'Xbox 360')+' \u00b7 Rumble '+rumbleLabel(rumble),
     lpad:PAD_MODE_SHORT[modes.LPAD]||'',
     rpad:PAD_MODE_SHORT[modes.RPAD]||'',
     triggers:dual.length===2?'Dual Stage on both':dual.length===1?'Dual Stage on '+(dual[0]==='LT'?'L2':'R2'):'Analog',
@@ -3163,8 +3209,11 @@ void RemapWindow::OnWebMessage(const std::wstring& raw) {
         // The page sends "0" for the default profile, which cannot follow
         // anything — so this needs no special case for it here.
         cfg.useDefaultMappings = JsonStr(msg, "useDefault") == "1";
-        cfg.platform = JsonStr(msg, "platform") == "ps" ? ControllerPlatform::PlayStation
-                                                        : ControllerPlatform::Xbox;
+        const std::string platId = JsonStr(msg, "platform");
+        cfg.platform = (platId == "switch") ? ControllerPlatform::Switch
+                     : (platId == "ps5")    ? ControllerPlatform::DualSense
+                     : (platId == "ps")     ? ControllerPlatform::PlayStation
+                                            : ControllerPlatform::Xbox;
         cfg.back.l4 = BackButtonBinding::FromId(JsonStr(msg, "L4"));
         cfg.back.l5 = BackButtonBinding::FromId(JsonStr(msg, "L5"));
         cfg.back.r4 = BackButtonBinding::FromId(JsonStr(msg, "R4"));
@@ -3182,6 +3231,10 @@ void RemapWindow::OnWebMessage(const std::wstring& raw) {
             s.scrollSpeed = ScrollSpeedFromDword(static_cast<uint32_t>(
                 std::strtoul(JsonStr(msg, id + "speed").c_str(), nullptr, 10)));
             s.diagonals = DiagonalModeFromId(JsonStr(msg, id + "diag"));
+            const std::string hapticStr = JsonStr(msg, id + "haptic");
+            if (!hapticStr.empty()) {
+                s.haptics = (hapticStr != "off" && hapticStr != "0");
+            }
             s.touch     = BackButtonBinding::FromId(JsonStr(msg, id + "touch"));
             s.up        = BackButtonBinding::FromId(JsonStr(msg, id + "up"));
             s.down      = BackButtonBinding::FromId(JsonStr(msg, id + "down"));
@@ -3337,6 +3390,7 @@ std::wstring RemapWindow::ProfileJson(const ControllerProfile& p) {
                L"\"" + k + L"dir\":\"" + narrow(ScrollDirectionId(s.scrollDir)) + L"\","
                L"\"" + k + L"speed\":\"" + std::to_wstring(s.scrollSpeed) + L"\","
                L"\"" + k + L"diag\":\"" + narrow(DiagonalModeId(s.diagonals)) + L"\","
+               L"\"" + k + L"haptic\":\"" + (s.haptics ? L"on" : L"off") + L"\","
                L"\"" + k + L"touch\":\"" + wid(s.touch) + L"\","
                L"\"" + k + L"up\":\"" + wid(s.up) + L"\","
                L"\"" + k + L"down\":\"" + wid(s.down) + L"\","
@@ -3363,7 +3417,9 @@ std::wstring RemapWindow::ProfileJson(const ControllerProfile& p) {
                + std::wstring(p.useDefaultMappings ? L"1" : L"0")
                + L"\","
                L"\"platform\":\""
-               + std::wstring(p.platform == ControllerPlatform::PlayStation ? L"ps" : L"xbox")
+               + std::wstring(p.platform == ControllerPlatform::Switch ? L"switch"
+                            : p.platform == ControllerPlatform::DualSense ? L"ps5"
+                            : p.platform == ControllerPlatform::PlayStation ? L"ps" : L"xbox")
                + L"\","
                L"\"L4\":\"" + wid(p.back.l4) + L"\","
                L"\"L5\":\"" + wid(p.back.l5) + L"\","

@@ -30,6 +30,15 @@ public:
     // read loops copy it without locking.
     void SetAlertCallback(AlertFn fn) { m_alertFn = std::move(fn); }
 
+    // Called from the read thread when a prolonged stall auto-disables game
+    // mode. The receiver must marshal to its own thread (e.g. PostMessage).
+    using AutoDisableFn = std::function<void()>;
+    void SetAutoDisableCallback(AutoDisableFn fn) { m_autoDisableFn = std::move(fn); }
+
+    // Returns true if any slot has flagged an auto-disable request.
+    // Called from the UI thread to consume the flag and act on it.
+    bool ConsumeAutoDisableRequest();
+
     // Why game mode did not come up, so callers can tell an idle receiver from
     // a contested one. A puck publishes a slot interface whether or not a
     // controller is paired into it, and cycling the device because nothing is
@@ -167,6 +176,11 @@ public:
     void StartButtonCapture(std::function<void(const BackButtonBinding&)> callback);
     void StopButtonCapture();
 
+    class DsuServer* GetDsuServer() const { return m_dsuServer.get(); }
+    void UpdateDsuState();
+
+    bool IsSwitchingPlatform() const { return m_switchingPlatform.load(std::memory_order_relaxed); }
+
 private:
     struct Slot;
 
@@ -208,6 +222,7 @@ private:
 
     StateChangedFn                     m_onStateChanged;
     AlertFn                            m_alertFn;
+    AutoDisableFn                      m_autoDisableFn;
     std::vector<std::unique_ptr<Slot>> m_slots;
     AcquireTiming                      m_timing;
     std::wstring                       m_lastLivePath;
@@ -245,4 +260,8 @@ private:
     std::atomic<bool>                            m_capturing{false};
     std::mutex                                   m_captureMutex;
     std::function<void(const BackButtonBinding&)> m_captureCallback;
+
+    std::atomic<bool>                            m_switchingPlatform{false};
+
+    std::unique_ptr<class DsuServer>             m_dsuServer;
 };

@@ -3,6 +3,7 @@
 #include "InputInjection.h"
 #include "ViGEmBusInfo.h"
 #include "VirtualController.h"
+#include "DsuServer.h"
 #include "TrackpadInput.h"
 #include "KeyInput.h"
 #include "TouchKeyboard.h"
@@ -79,6 +80,11 @@ struct ControllerManager::Slot {
     // already down last frame — it fires on the press, not on every frame held.
     std::chrono::steady_clock::time_point powerOffAt{};
     bool                               powerChordDown = false;
+
+    // Set by the read loop when it exits due to a prolonged stall (controller
+    // turned off while game mode was active). The UI thread sees this and calls
+    // DisableGameMode() safely from its own context.
+    std::atomic<bool>                  autoDisableRequested{false};
 
     // When this slot was last found silent. Probing for a state report costs
     // the full timeout on an empty puck slot, and the acquire path retries in
@@ -226,6 +232,8 @@ struct ControllerManager::Slot {
     enum class ClickState { WaitingForPress, WaitingForRelease };
     ClickState hapticRightClickState = ClickState::WaitingForPress;
     ClickState hapticLeftClickState  = ClickState::WaitingForPress;
+    bool hapticRightPressHadAction = false;
+    bool hapticLeftPressHadAction  = false;
 
     // Previous trackpad positions and accumulated travel for distance-based haptic.
     int16_t hapticPrevRightX       = 0;
@@ -378,17 +386,21 @@ ControllerManager::ControllerManager(StateChangedFn onStateChanged)
 {
     g_crashRestoreInstance = this;
     SetUnhandledExceptionFilter(CrashRestoreFilter);
+    m_dsuServer = std::make_unique<DsuServer>();
+    m_dsuServer->Start();
     SyncDevices();
+    UpdateDsuState();
 }
 
 ControllerManager::~ControllerManager() {
     g_crashRestoreInstance = nullptr;
+    if (m_dsuServer) {
+        m_dsuServer->Stop();
+    }
     StopPounce();
     for (auto& slot : m_slots) {
-        // Stop the read loop and virtual controller first (same as DisableGameModeSlot
-        // but without the gameModeActive guard — we always want to restore lizard mode).
+        StopReadLoop(*slot);
         if (slot->gameModeActive) {
-            StopReadLoop(*slot);
             slot->leftPad.Reset();
             slot->rightPad.Reset();
             ReleaseHeldPaddleInputs(*slot);
@@ -407,6 +419,19 @@ ControllerManager::~ControllerManager() {
 bool ControllerManager::IsGameModeActive() const {
     return std::any_of(m_slots.begin(), m_slots.end(),
         [](const auto& s) { return s->gameModeActive; });
+}
+
+void ControllerManager::UpdateDsuState() {
+    if (!m_dsuServer) return;
+    // DSU is active when:
+    // - Steamless mode is OFF (!IsGameModeActive()), OR
+    // - Steamless mode is ON and platform is Xbox 360 (which lacks native gyro).
+    // (DSU is paused/inactive in Switch Pro or DualShock 4 modes, which have native gyro).
+    const bool active = !IsGameModeActive() || (m_profile.platform == ControllerPlatform::Xbox);
+    m_dsuServer->SetActive(active);
+
+    const bool hasPad = !m_slots.empty() && m_slots[0]->sc && m_slots[0]->sc->IsOpen();
+    m_dsuServer->SetSlotConnected(0, hasPad);
 }
 
 int ControllerManager::BatteryPercent() const {
@@ -534,18 +559,29 @@ void ControllerManager::DisableGameMode() {
     NotifyStateChanged();
 }
 
+bool ControllerManager::ConsumeAutoDisableRequest() {
+    bool any = false;
+    for (auto& slot : m_slots) {
+        if (slot->autoDisableRequested.exchange(false))
+            any = true;
+    }
+    return any;
+}
+
 void ControllerManager::ReleaseDevices(bool keepDocks) {
     // Not StopPounce(): a release is exactly what precedes a cycle, and the
     // pounce is armed to survive it. TrayApp stops it when the acquire ends.
     if (!m_slots.empty())
         EventLog::Write("RELEASE: closing all device handles (intentional handoff)");
-    // Disable game mode first — enables lizard mode and tears down ViGEm while
-    // we still hold write access to the device.
+    for (auto& slot : m_slots) {
+        StopReadLoop(*slot);
+    }
     DisableGameMode();
     // Close all device handles. Slot destructors call SteamController::Close()
     // which closes the HID handle, allowing another process to open it.
     m_slots.clear();
     if (!keepDocks) ReleaseDocks();
+    UpdateDsuState();
     NotifyStateChanged();
 }
 
@@ -642,7 +678,7 @@ static std::string DescribePad(const TrackpadSettings& pad) {
         snprintf(buf, sizeof(buf), "pointer (speed %u%%)", pad.scrollSpeed);
         return buf;
     }
-    case TrackpadMode::DS4Touchpad:   return "ds4 touchpad";
+    case TrackpadMode::DS4Touchpad:   return "PlayStation Touchpad";
     case TrackpadMode::SingleButton:   return "single button";
     case TrackpadMode::DirectionalPad:
         return std::string("dpad (")
@@ -747,13 +783,62 @@ void ControllerManager::SetProfile(const ControllerProfile& profile) {
     // disconnect and reconnect the pad under the running game each time
     // somebody edited a paddle binding.
     if (platformChanged && IsGameModeActive()) {
-        const bool wasShared = IsGameModeShared();
+        m_switchingPlatform = true;
+        NotifyStateChanged();
+
+        EventLog::Write("GAMEMODE: platform changing from %d to %d; tearing down existing virtual pad...",
+                        static_cast<int>(m_profile.platform), static_cast<int>(profile.platform));
+
+        for (auto& slot : m_slots) {
+            if (!slot->gameModeActive) continue;
+            slot->vc.reset();
+        }
+
+        // Teardown cooldown: Give Windows PnP, ViGEmBus, and USBIP-win2 drivers
+        // sufficient time to detach and unregister the old virtual controller so that
+        // Slot 0 / Index 0 (Player 1) is completely vacated before adding the new target.
+        // Pump Win32 messages while waiting so the UI remains fluid and responsive.
+        const DWORD startTick = GetTickCount();
+        while (GetTickCount() - startTick < 600) {
+            MSG msg;
+            while (PeekMessageW(&msg, nullptr, 0, 0, PM_REMOVE)) {
+                TranslateMessage(&msg);
+                DispatchMessageW(&msg);
+            }
+            Sleep(15);
+        }
+
+        bool allOk = true;
+        for (auto& slot : m_slots) {
+            if (!slot->gameModeActive) continue;
+            slot->vc = std::make_unique<VirtualController>(
+                m_profile.platform,
+                [this, sc = slot->sc.get()](uint8_t largeMotor, uint8_t smallMotor) {
+                    const uint32_t strength = m_rumbleStrength.load(std::memory_order_relaxed);
+                    largeMotor = static_cast<uint8_t>(largeMotor * strength / 100);
+                    smallMotor = static_cast<uint8_t>(smallMotor * strength / 100);
+                    if (sc->IsOpen()) sc->SetRumble(largeMotor, smallMotor);
+                });
+            if (!slot->vc->IsValid()) {
+                EventLog::Write("GAMEMODE: virtual controller rebuild failed (stage=%s, err=0x%08X)",
+                                slot->vc->FailStage(), slot->vc->LastError());
+                m_lastPadDriverMissing = slot->vc->IsDriverMissing();
+                allOk = false;
+                break;
+            }
+        }
+
+        m_switchingPlatform = false;
+
+        if (allOk) {
+            for (auto& slot : m_slots)
+                ApplyPadSettings(*slot);
+            LogPadSettings();
+            UpdateDsuState();
+            NotifyStateChanged();
+            return;
+        }
         DisableGameMode();
-        // Rebuilding a game mode that was already running: the caller changed a
-        // setting, not the acquire policy. Let it come back on a shared handle
-        // if that is what it had (or all that is left) rather than dropping the
-        // user's controller entirely over a platform toggle.
-        EnableGameMode(250, /*allowShared=*/wasShared);  // re-applies pad settings per slot
         return;
     }
 
@@ -765,6 +850,7 @@ void ControllerManager::SetProfile(const ControllerProfile& profile) {
 
     // After the push, so what is logged is what the pads are now set to.
     LogPadSettings();
+    UpdateDsuState();
 }
 
 void ControllerManager::ApplyRumbleStrength() {
@@ -1108,6 +1194,11 @@ void ControllerManager::OpenSlot(const std::wstring& path) {
     } else {
         // Restore lizard mode in case a previous session crashed without cleaning up.
         m_slots.back()->sc->EnableLizardMode();
+        if (m_slots.back()->sc->WaitForStateReport(50)) {
+            m_slots.back()->sc->SetImuEnabled(true);
+            StartReadLoop(*m_slots.back());
+        }
+        UpdateDsuState();
     }
 }
 
@@ -1403,7 +1494,13 @@ void ControllerManager::ReadLoop(Slot* slot) {
 
     // No reports for this long while the device is still enumerated means the
     // controller died silently: battery empty, auto-sleep, or wireless drop.
-    static constexpr auto kStallThreshold = std::chrono::seconds(4);
+    static constexpr auto kStallThreshold       = std::chrono::seconds(4);
+    // After this much silence, auto-disable game mode so the tray shows "Off"
+    // instead of staying stuck on "Active". The controller is gone — it was
+    // powered off or the wireless link dropped. User can re-enable manually
+    // or switch it back on (which triggers a device-change event that
+    // re-enables automatically if m_wantControl is set).
+    static constexpr auto kAutoDisableThreshold = std::chrono::seconds(30);
 
     while (slot->readRunning) {
         // Keepalive — the firmware silently reverts to lizard mode (and its
@@ -1462,8 +1559,9 @@ void ControllerManager::ReadLoop(Slot* slot) {
         }
 
         if (n == 0) {
-            if (!stalled
-                    && std::chrono::steady_clock::now() - lastReport > kStallThreshold) {
+            const auto now     = std::chrono::steady_clock::now();
+            const auto elapsed = now - lastReport;
+            if (!stalled && elapsed > kStallThreshold) {
                 stalled = true;
                 EventLog::Write("STALL: no reports for 4s (lastBattery=%d%%, last state report "
                                 "%.1fs ago, read error %lu) %ls",
@@ -1486,6 +1584,23 @@ void ControllerManager::ReadLoop(Slot* slot) {
                                    L"wireless signal dropped.");
                     m_alertFn(L"Controller not responding", text);
                 }
+            }
+            // Auto-disable: if the controller has been silent for 30s, give up
+            // and let the UI thread know so it can clean up game mode safely.
+            // The read loop exits; the UI's device-change handler will re-enable
+            // when the controller powers back on (device-change event fires).
+            if (stalled && elapsed > kAutoDisableThreshold
+                    && slot->gameModeActive
+                    && !slot->powerOffRequested.load()) {
+                EventLog::Write("STALL: no reports for %llds — auto-disabling game mode "
+                                "(controller appears off) %ls",
+                                static_cast<long long>(
+                                    std::chrono::duration_cast<std::chrono::seconds>(elapsed).count()),
+                                slot->path.c_str());
+                slot->autoDisableRequested = true;
+                slot->readRunning          = false;  // exit the loop
+                if (m_autoDisableFn) m_autoDisableFn();
+                return;
             }
             continue;
         }
@@ -1585,6 +1700,17 @@ void ControllerManager::ReadLoop(Slot* slot) {
                 EventLog::Write("POWEROFF: still reporting after %lld s, resuming input",
                                 static_cast<long long>(kPowerOffGrace.count()));
             }
+        }
+
+        // Stream to Cemuhook DSU server (127.0.0.1:26760)
+        if (m_dsuServer && m_dsuServer->IsActive() && m_dsuServer->HasSubscribers()) {
+            m_dsuServer->PushReport(0, buf, n);
+        }
+
+        // If game mode is inactive (Steamless OFF), firmware Lizard mode handles
+        // desktop mouse & keyboard; we don't emulate pads or inject keys.
+        if (!slot->gameModeActive) {
+            continue;
         }
 
         // Whether each pad is pressed has to be settled before the pads are
@@ -1725,16 +1851,57 @@ void ControllerManager::ReadLoop(Slot* slot) {
             slot->hapticRightClickLowFrames  = rc ? 0 : slot->hapticRightClickLowFrames + 1;
             slot->hapticLeftClickLowFrames   = lc ? 0 : slot->hapticLeftClickLowFrames  + 1;
 
+            auto bindingHasAction = [](const BackButtonBinding& b) {
+                return !(b.kind == BackButtonBinding::Kind::Action &&
+                         b.code == static_cast<uint16_t>(BackButtonAction::None));
+            };
+
+            auto padHasPressAction = [&](bool leftPad) -> bool {
+                const auto& pad = leftPad ? m_profile.leftPad : m_profile.rightPad;
+                if (pad.mode == TrackpadMode::None) {
+                    return false;
+                }
+                const bool isPlayStation = (m_profile.platform == ControllerPlatform::PlayStation ||
+                                            m_profile.platform == ControllerPlatform::DualSense);
+                if (pad.FeedsDs4Touchpad() && isPlayStation) {
+                    return true;
+                }
+                if (pad.IsDirectionalPad()) {
+                    const bool inCentre = leftPad ? resolved.leftClickInCentre : resolved.rightClickInCentre;
+                    if (inCentre) {
+                        return bindingHasAction(pad.click);
+                    } else {
+                        const uint8_t dirs = leftPad ? resolved.leftDirs : resolved.rightDirs;
+                        if (dirs == DirNone) {
+                            return bindingHasAction(pad.up) || bindingHasAction(pad.down) ||
+                                   bindingHasAction(pad.left) || bindingHasAction(pad.right);
+                        }
+                        if ((dirs & DirUp)    && bindingHasAction(pad.up))    return true;
+                        if ((dirs & DirDown)  && bindingHasAction(pad.down))  return true;
+                        if ((dirs & DirLeft)  && bindingHasAction(pad.left))  return true;
+                        if ((dirs & DirRight) && bindingHasAction(pad.right)) return true;
+                        return false;
+                    }
+                }
+                return bindingHasAction(pad.EffectiveClick());
+            };
+
             if (slot->hapticRightClickState == Slot::ClickState::WaitingForPress) {
                 if (slot->hapticRightClickTrueFrames >= Slot::kPressConfirmFrames) {
-                    slot->sc->PulseTrackpadHaptic(false, true);
+                    slot->hapticRightPressHadAction = padHasPressAction(false);
+                    if (slot->hapticRightPressHadAction) {
+                        slot->sc->PulseTrackpadHaptic(false, true);
+                    }
                     slot->hapticRightClickState   = Slot::ClickState::WaitingForRelease;
                     slot->hapticPrevRightX        = rx;
                     slot->hapticPrevRightY        = ry;
                     slot->hapticRightDistAccum    = 0.0f;
                 }
             } else if (slot->hapticRightClickLowFrames >= Slot::kReleaseConfirmFrames) {
-                slot->sc->PulseTrackpadHaptic(false, true);
+                if (slot->hapticRightPressHadAction) {
+                    slot->sc->PulseTrackpadHaptic(false, true);
+                }
+                slot->hapticRightPressHadAction = false;
                 slot->hapticRightClickState   = Slot::ClickState::WaitingForPress;
                 slot->hapticRightReleaseGrace = Slot::kPostReleaseGraceFrames;
                 slot->hapticPrevRightX        = rx;
@@ -1744,14 +1911,20 @@ void ControllerManager::ReadLoop(Slot* slot) {
 
             if (slot->hapticLeftClickState == Slot::ClickState::WaitingForPress) {
                 if (slot->hapticLeftClickTrueFrames >= Slot::kPressConfirmFrames) {
-                    slot->sc->PulseTrackpadHaptic(true, true);
+                    slot->hapticLeftPressHadAction = padHasPressAction(true);
+                    if (slot->hapticLeftPressHadAction) {
+                        slot->sc->PulseTrackpadHaptic(true, true);
+                    }
                     slot->hapticLeftClickState   = Slot::ClickState::WaitingForRelease;
                     slot->hapticPrevLeftX        = lx;
                     slot->hapticPrevLeftY        = ly;
                     slot->hapticLeftDistAccum    = 0.0f;
                 }
             } else if (slot->hapticLeftClickLowFrames >= Slot::kReleaseConfirmFrames) {
-                slot->sc->PulseTrackpadHaptic(true, true);
+                if (slot->hapticLeftPressHadAction) {
+                    slot->sc->PulseTrackpadHaptic(true, true);
+                }
+                slot->hapticLeftPressHadAction = false;
                 slot->hapticLeftClickState   = Slot::ClickState::WaitingForPress;
                 slot->hapticLeftReleaseGrace = Slot::kPostReleaseGraceFrames;
                 slot->hapticPrevLeftX        = lx;
@@ -1810,8 +1983,10 @@ void ControllerManager::ReadLoop(Slot* slot) {
                 // press and going back to nothing is the release, and both
                 // already fire their own click haptic.
                 auto directionTick = [&](bool leftPad, uint8_t prev, uint8_t now) {
-                    if (prev != DirNone && now != DirNone && prev != now)
-                        slot->sc->TickTrackpadMovement(leftPad);
+                    if (prev != DirNone && now != DirNone && prev != now) {
+                        if (leftPad ? m_profile.leftPad.haptics : m_profile.rightPad.haptics)
+                            slot->sc->TickTrackpadMovement(leftPad);
+                    }
                 };
                 const bool rightIsDpad = m_profile.rightPad.IsDirectionalPad();
                 const bool leftIsDpad  = m_profile.leftPad.IsDirectionalPad();
@@ -1854,7 +2029,7 @@ void ControllerManager::ReadLoop(Slot* slot) {
                         slot->hapticRightIdleFrames = 0;
                         slot->hapticRightDistAccum += dist;
                         if (slot->hapticRightDistAccum >= TRACKPAD_HAPTIC_TICK_DISTANCE) {
-                            if (slot->sc->TickTrackpadMovement(false)) {
+                            if (!m_profile.rightPad.haptics || slot->sc->TickTrackpadMovement(false)) {
                                 slot->hapticRightDistAccum = 0.0f;
                             } else {
                                 // Rate-limited: hold at threshold so the tick
@@ -1885,7 +2060,7 @@ void ControllerManager::ReadLoop(Slot* slot) {
                         slot->hapticLeftIdleFrames = 0;
                         slot->hapticLeftDistAccum += dist;
                         if (slot->hapticLeftDistAccum >= TRACKPAD_HAPTIC_TICK_DISTANCE) {
-                            if (slot->sc->TickTrackpadMovement(true))
+                            if (!m_profile.leftPad.haptics || slot->sc->TickTrackpadMovement(true))
                                 slot->hapticLeftDistAccum = 0.0f;
                             else
                                 slot->hapticLeftDistAccum = TRACKPAD_HAPTIC_TICK_DISTANCE;

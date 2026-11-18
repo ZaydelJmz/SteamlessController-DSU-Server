@@ -144,6 +144,7 @@ private:
 
     // Control plumbing, shared by every mode.
     void SetAutoMode(AutoMode mode);
+    void SetPlatform(ControllerPlatform platform);
     // Whether Steam's current state leaves the controller available to us.
     // A rule rather than a preference: no profile setting may vote itself
     // into driving the pad alongside Steam Input, which is worse than not
@@ -313,9 +314,10 @@ private:
     // stale menu message from an old build can't land on a new command.
     static constexpr UINT IDM_REMAP_BACK    = 1004;
     static constexpr UINT IDM_STARTUP       = 1006;
-    // 1008 and 1009 were the retired "Controller Platform" submenu items,
-    // now a dropdown in the customization window. Left unused rather than
-    // reassigned, like 1003/1005 above.
+    static constexpr UINT IDM_PLATFORM_XBOX   = 1007;
+    static constexpr UINT IDM_PLATFORM_PS     = 1008;
+    static constexpr UINT IDM_PLATFORM_PS5    = 1025;
+    static constexpr UINT IDM_PLATFORM_SWITCH = 1009;
     static constexpr UINT IDM_MODE_MANUAL   = 1010;
     static constexpr UINT IDM_MODE_STEAM    = 1011;
     static constexpr UINT IDM_MODE_GAME     = 1012;
@@ -331,6 +333,10 @@ private:
     // read thread, and the remap window is WebView2, which must only be
     // touched on the UI thread.
     static constexpr UINT WM_CONTROLSTATE   = WM_APP + 4;
+    // Posted by the read thread when a prolonged stall auto-disables game mode.
+    // The read loop already exited; this lets the UI thread call DisableGameMode()
+    // safely (which joins the now-finished thread) and optionally re-arm acquisition.
+    static constexpr UINT WM_AUTO_DISABLE   = WM_APP + 5;
     static constexpr UINT TRAY_UID          = 1;
     static constexpr UINT_PTR IDT_ACQUIRE         = 1;
     static constexpr UINT_PTR IDT_ACQUIRE_VERDICT = 2;

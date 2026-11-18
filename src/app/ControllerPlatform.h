@@ -2,5 +2,7 @@
 
 enum class ControllerPlatform {
     Xbox,
-    PlayStation
+    PlayStation,
+    DualSense,
+    Switch
 };

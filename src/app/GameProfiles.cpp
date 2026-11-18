@@ -53,6 +53,7 @@ void ReadPad(HKEY key, const wchar_t* prefix, TrackpadSettings& pad) {
     pad.scrollDir = ScrollDirectionFromDword(ReadDw(key, name(L"ScrollDir").c_str(), 0));
     // Zero means absent, which ScrollSpeedFromDword reads as the default.
     pad.scrollSpeed = ScrollSpeedFromDword(ReadDw(key, name(L"ScrollSpeed").c_str(), 0));
+    pad.haptics   = ReadDw(key, name(L"Haptics").c_str(), 1) != 0;
     // Absent from every profile written before the directional modes existed.
     // The defaults match TrackpadSettings' own, so those profiles read back as
     // an unconfigured directional pad rather than a broken one.
@@ -71,6 +72,7 @@ void WritePad(HKEY key, const wchar_t* prefix, const TrackpadSettings& pad) {
     WriteDw(key, name(L"Click").c_str(),     pad.click.Pack());
     WriteDw(key, name(L"ScrollDir").c_str(), static_cast<DWORD>(pad.scrollDir));
     WriteDw(key, name(L"ScrollSpeed").c_str(), pad.scrollSpeed);
+    WriteDw(key, name(L"Haptics").c_str(),     pad.haptics ? 1 : 0);
     WriteDw(key, name(L"Touch").c_str(),     pad.touch.Pack());
     WriteDw(key, name(L"Up").c_str(),        pad.up.Pack());
     WriteDw(key, name(L"Down").c_str(),      pad.down.Pack());

@@ -254,6 +254,7 @@ struct TrackpadSettings {
     ScrollDirection   scrollDir = ScrollDirection::Natural;
     // ScrollWheel and MousePointer, as a percentage — see kScrollSpeedDefault.
     uint32_t          scrollSpeed = kScrollSpeedDefault;
+    bool              haptics     = true;
     BackButtonBinding click     = BackButtonBinding::FromAction(BackButtonAction::None);
     // Fires while a finger rests on the pad, whatever the pad's mode is doing
     // with movement. Deliberately not zoned like the click: touch and click
@@ -272,7 +273,7 @@ struct TrackpadSettings {
 
     bool operator==(const TrackpadSettings& o) const {
         return mode == o.mode && scrollDir == o.scrollDir && click == o.click
-            && scrollSpeed == o.scrollSpeed
+            && scrollSpeed == o.scrollSpeed && haptics == o.haptics
             && touch == o.touch && up == o.up && down == o.down
             && left == o.left && right == o.right && diagonals == o.diagonals;
     }
@@ -303,7 +304,8 @@ struct TrackpadSettings {
     // but that needs the press position, which lives with the resolver rather
     // than here. The caller that has it applies the zone; see TrackpadInput.
     BackButtonBinding EffectiveClick() const {
-        return FeedsDs4Touchpad() ? BackButtonBinding{} : click;
+        return (mode == TrackpadMode::None || FeedsDs4Touchpad()) ? BackButtonBinding{}
+                                                                  : click;
     }
 
     // A pad set to None is not in use at all, and a DS4 touchpad's contact is

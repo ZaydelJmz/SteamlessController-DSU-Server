@@ -18,10 +18,10 @@
 // not say which build wrote it costs a round trip with whoever reported the bug.
 //
 // Keep in step with MyAppVersion in resources/InnoInstallerScript.iss.
-#define APP_VERSION_MAJOR 2
-#define APP_VERSION_MINOR 0
-#define APP_VERSION_PATCH 0
-#define APP_VERSION_STR   "2.0"
+#define APP_VERSION_MAJOR 0
+#define APP_VERSION_MINOR 1
+#define APP_VERSION_PATCH 5
+#define APP_VERSION_STR   "0.1.5"
 
 // Fonts embedded as RCDATA (fonts.rc). The same bytes feed DirectWrite in the tray
 // panel and are served to the Customize page; see EmbeddedFonts.cpp.
