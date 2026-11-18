@@ -2096,6 +2096,7 @@ void TrayApp::LoadSettings() {
         // Absent reads as full strength, as it was before rumble was settable;
         // zero is a real value (muted).
         profile.rumble = ClampRumble(readDw(L"Rumble", kRumbleDefault));
+        profile.touchpadClickAsShare = readDw(L"TouchpadClickAsShare", 0) != 0;
         // Same for the sticks: an install that predates them reads back as
         // Default, the 8% circle.
         profile.leftStick  = ReadStickSettings(L"LeftStick",  readTriggerDw);
@@ -2190,6 +2191,7 @@ void TrayApp::SaveSettings() {
     WriteTriggerSettings(L"LeftTrigger",  profile.leftTrigger,  writeDw);
     WriteTriggerSettings(L"RightTrigger", profile.rightTrigger, writeDw);
     writeDw(L"Rumble", profile.rumble);
+    writeDw(L"TouchpadClickAsShare", profile.touchpadClickAsShare ? 1 : 0);
     WriteStickSettings(L"LeftStick",  profile.leftStick,  writeDw);
     WriteStickSettings(L"RightStick", profile.rightStick, writeDw);
     // Written last and unconditionally: its presence is what tells the next

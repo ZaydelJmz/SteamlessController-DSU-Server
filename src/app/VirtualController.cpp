@@ -581,6 +581,13 @@ void VirtualController::Update(const uint8_t* buf, size_t n,
                 btns |= 0x0002; // ButtonTouchpadClick
             }
 
+            if (profile.touchpadClickAsShare) {
+                const bool hasTouchpadClick = (btns & 0x0002) != 0;
+                const bool hasCreate = (btns & 0x1000) != 0;
+                if (hasTouchpadClick) btns |= 0x1000;
+                if (hasCreate) btns |= 0x0002;
+            }
+
             // Touch coordinates: right SC pad -> Touch 1, left SC pad -> Touch 2
             const bool rawRightTouching = (b2 & SteamController::BTN_TP_RT) != 0;
             const bool rawLeftTouching  = (b3 & SteamController::BTN_TP_LT) != 0;
@@ -761,6 +768,13 @@ void VirtualController::Update(const uint8_t* buf, size_t n,
             if ((resolved.rightPressed && rightToTouchpad)
                     || (resolved.leftPressed && leftToTouchpad))
                 r.bSpecial |= DS4_SPECIAL_BUTTON_TOUCHPAD;
+
+            if (profile.touchpadClickAsShare) {
+                const bool hasTouchpadClick = (r.bSpecial & DS4_SPECIAL_BUTTON_TOUCHPAD) != 0;
+                const bool hasShare = (r.wButtons & DS4_BUTTON_SHARE) != 0;
+                if (hasTouchpadClick) r.wButtons |= DS4_BUTTON_SHARE;
+                if (hasShare) r.bSpecial |= DS4_SPECIAL_BUTTON_TOUCHPAD;
+            }
 
             if (rightTouching && !m_wasRightTouching)
                 m_rightTracking = static_cast<uint8_t>((m_rightTracking + 1) & 0x7F);

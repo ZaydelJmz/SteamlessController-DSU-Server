@@ -111,8 +111,9 @@ std::map<std::wstring, ControllerProfile> Load() {
             // Absent on every profile written before followers existed, and 0
             // is "has its own controls" precisely so those keep theirs.
             p.useDefaultMappings = ReadDw(child, L"UseDefaultMappings", 0) != 0;
-            p.platform = ReadDw(child, L"Platform", 0) != 0 ? ControllerPlatform::PlayStation
-                                                            : ControllerPlatform::Xbox;
+            const DWORD platVal = ReadDw(child, L"Platform", 0);
+            p.platform = static_cast<ControllerPlatform>(platVal <= 3 ? platVal : 0);
+            p.touchpadClickAsShare = ReadDw(child, L"TouchpadClickAsShare", 0) != 0;
             p.back.l4 = BackButtonBinding::Unpack(ReadDw(child, L"L4", unbound));
             p.back.l5 = BackButtonBinding::Unpack(ReadDw(child, L"L5", unbound));
             p.back.r4 = BackButtonBinding::Unpack(ReadDw(child, L"R4", unbound));
@@ -168,8 +169,8 @@ void Save(const std::map<std::wstring, ControllerProfile>& profiles) {
             // The controls below are written either way, so a profile that
             // stops following the default still has whatever it had before.
             WriteDw(child, L"UseDefaultMappings", p.useDefaultMappings ? 1 : 0);
-            WriteDw(child, L"Platform",
-                    p.platform == ControllerPlatform::PlayStation ? 1 : 0);
+            WriteDw(child, L"Platform", static_cast<DWORD>(p.platform));
+            WriteDw(child, L"TouchpadClickAsShare", p.touchpadClickAsShare ? 1 : 0);
             WriteDw(child, L"L4", p.back.l4.Pack());
             WriteDw(child, L"L5", p.back.l5.Pack());
             WriteDw(child, L"R4", p.back.r4.Pack());

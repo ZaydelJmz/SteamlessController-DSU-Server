@@ -20,8 +20,8 @@
 // Keep in step with MyAppVersion in resources/InnoInstallerScript.iss.
 #define APP_VERSION_MAJOR 0
 #define APP_VERSION_MINOR 1
-#define APP_VERSION_PATCH 5
-#define APP_VERSION_STR   "0.1.5"
+#define APP_VERSION_PATCH 6
+#define APP_VERSION_STR   "0.1.6"
 
 // Fonts embedded as RCDATA (fonts.rc). The same bytes feed DirectWrite in the tray
 // panel and are served to the Customize page; see EmbeddedFonts.cpp.

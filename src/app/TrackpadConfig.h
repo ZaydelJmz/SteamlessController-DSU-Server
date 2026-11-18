@@ -372,6 +372,7 @@ struct ControllerProfile {
     // virtual controller down and builds it again, which a running game sees
     // as a controller unplug and replug.
     ControllerPlatform platform = ControllerPlatform::Xbox;
+    bool touchpadClickAsShare = false;
     BackButtonConfig back;
     TrackpadSettings leftPad{
         .mode      = TrackpadMode::ScrollWheel,
@@ -400,6 +401,7 @@ struct ControllerProfile {
     bool operator==(const ControllerProfile& o) const {
         return useDefaultMappings == o.useDefaultMappings
             && platform == o.platform
+            && touchpadClickAsShare == o.touchpadClickAsShare
             && back.l4 == o.back.l4 && back.l5 == o.back.l5
             && back.r4 == o.back.r4 && back.r5 == o.back.r5
             && back.qam == o.back.qam

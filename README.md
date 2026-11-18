@@ -47,6 +47,10 @@ A standalone driver and input wrapper specifically tailored for the **Steam Cont
   * When the controller powers off (timeout, battery empty, or button) while the wireless dongle stays plugged in, the app automatically transitions to **Off** after 12 seconds of silence.
   * Avoids frozen battery percentages and frees virtual controller slots. Reconnects automatically as soon as the controller powers back on.
 
+* 🗺️ **Touchpad Click as Select / Back Option (PlayStation 4 & 5)**
+  * Dedicated toggle in Customize Controls (`General` tab) mapping physical Back to Touchpad Click and vice versa.
+  * Essential for cross-platform titles (such as *Fortnite*) where in-game maps or scoreboards are bound to the touchpad click on PlayStation platforms.
+
 * 🧠 **Smart Steam Integration**
   * Keeps your desktop bindings active while Steam is running in the background.
   * Automatically and transparently pauses only when Steam launches a game (`gameoverlayui.exe`), avoiding double-input conflicts.
@@ -68,8 +72,8 @@ A standalone driver and input wrapper specifically tailored for the **Steam Cont
 
 ### 2. Getting Started
 
-1. Download **`SteamlessDSUServer-0.1.5.zip`** from the [Latest Release](https://github.com/ZaydelJmz/SteamlessController-DSU-Server/releases/latest).
-2. Extract the folder to your preferred location (e.g. `C:\Programas\SteamlessDSUServer-0.1.5`).
+1. Download **`SteamlessDSUServer-0.1.6.zip`** from the [Latest Release](https://github.com/ZaydelJmz/SteamlessController-DSU-Server/releases/latest).
+2. Extract the folder to your preferred location (e.g. `C:\Programas\SteamlessDSUServer-0.1.6`).
 3. If running for the first time, right-click **`Instalar requisitos.cmd`** and select **"Run as administrator"**.
 4. Restart Windows if installing drivers for the first time.
 5. Connect your Steam Controller and launch **`SteamlessController.exe`**.
@@ -161,6 +165,10 @@ Controlador independiente para el **Steam Controller** en Windows que funciona *
 * 🔋 **Watchdog de Inactividad y Apagado (12s)**
   * Si el control se apaga o se duerme con el dongle conectado, la app pasa a estado **Off** tras 12 segundos, liberando el slot virtual y evitando porcentajes de batería congelados. Al encenderse de nuevo, se reconecta automáticamente.
 
+* 🗺️ **Mapeo de Touchpad Click a Select / Back (PlayStation 4 y 5)**
+  * Opción conmutable en Customize Controls (pestaña `General`) para vincular el botón Back físico del Steam Controller con el clic del touchpad de PlayStation y viceversa.
+  * Ideal para títulos multiplataforma (como *Fortnite*) donde abrir el mapa o ver la puntuación está ligado al clic del touchpad en consolas de PlayStation.
+
 * 🧠 **Detección Inteligente de Steam**
   * El mando sigue funcionando en el escritorio aunque Steam esté abierto.
   * Se pausa únicamente cuando Steam inicia un juego (`gameoverlayui.exe`) para evitar dobles entradas.
@@ -169,7 +177,7 @@ Controlador independiente para el **Steam Controller** en Windows que funciona *
 
 ### 📥 Instalación y Uso Rápido
 
-1. Descarga **`SteamlessDSUServer-0.1.5.zip`** desde la sección de [Releases](https://github.com/ZaydelJmz/SteamlessController-DSU-Server/releases/latest).
+1. Descarga **`SteamlessDSUServer-0.1.6.zip`** desde la sección de [Releases](https://github.com/ZaydelJmz/SteamlessController-DSU-Server/releases/latest).
 2. Descomprime la carpeta donde prefieras.
 3. Si es tu primera vez, haz clic derecho sobre **`Instalar requisitos.cmd`** y elige **"Ejecutar como administrador"**.
 4. Reinicia el equipo si instalaste drivers nuevos.

@@ -338,6 +338,15 @@ R"HTML(
         <select id="platform" class="mode-select"></select>
       </div>
     </div>
+    <div class="row mode-row" id="touchpad-share-row">
+      <div class="row-top">
+        <span class="pos-label">Touchpad Click as Select / Back</span>
+        <div class="connector"></div>
+        <div style="display:flex;align-items:center;height:34px;">
+          <input type="checkbox" id="touchpad-share" style="width:18px;height:18px;accent-color:#4a9eff;cursor:pointer;">
+        </div>
+      </div>
+    </div>
     <div class="row mode-row" id="rumble-row">
       <div class="row-top">
         <span class="pos-label">Rumble</span>
@@ -812,7 +821,7 @@ var runningOpen = false;
 // Each profile is a flat object: one entry per bindable row id, plus
 // "<pad>mode" for each trackpad's movement mode. Flat because the JSON
 // reader on the C++ side matches "key":"value" pairs without nesting.
-var PROFILES = {'':{platform:'xbox',L4:'leftMouse',L5:'none',R4:'leftMouse',R5:'none',QAM:'none',LPAD:'none',RPAD:'leftMouse',LPADmode:'scroll',RPADmode:'pointer',LPADdir:'natural',RPADdir:'natural',LPADspeed:'100',RPADspeed:'100',LPADdiag:'eight',RPADdiag:'eight',LPADtouch:'none',RPADtouch:'none',LPADup:'Up',LPADdown:'Down',LPADleft:'Left',LPADright:'Right',RPADup:'Up',RPADdown:'Down',RPADleft:'Left',RPADright:'Right'}};
+var PROFILES = {'':{platform:'xbox',touchpadShare:'0',L4:'leftMouse',L5:'none',R4:'leftMouse',R5:'none',QAM:'none',LPAD:'none',RPAD:'leftMouse',LPADmode:'scroll',RPADmode:'pointer',LPADdir:'natural',RPADdir:'natural',LPADspeed:'100',RPADspeed:'100',LPADdiag:'eight',RPADdiag:'eight',LPADtouch:'none',RPADtouch:'none',LPADup:'Up',LPADdown:'Down',LPADleft:'Left',LPADright:'Right',RPADup:'Up',RPADdown:'Down',RPADleft:'Left',RPADright:'Right'}};
 var currentGame = '';
 var comboOpen = false;
 var comboQuery = '';
@@ -1101,6 +1110,7 @@ function resetDefaults(){
   triggerReset();
   rumbleReset();
   stickReset();
+  touchpadShareReset();
   flash=null;
   clearTimeout(flashTimer);
   renderModeSelects();
@@ -1128,6 +1138,7 @@ function currentProfile(){
   triggerToProfile(p);
   rumbleToProfile(p);
   stickToProfile(p);
+  touchpadShareToProfile(p);
   return p;
 }
 // Inverse of currentProfile: adopt a stored profile as the live state, filling
@@ -1161,6 +1172,7 @@ function loadProfileInto(p){
   triggerFromProfile(p);
   rumbleFromProfile(p);
   stickFromProfile(p);
+  touchpadShareFromProfile(p);
   savedProfile=currentProfile();
 }
 // Commit the current state to the selected profile. Split out from the
@@ -1458,6 +1470,7 @@ function renderInherit(){
   if(settings) settings.className=(currentGame!==''&&useDefault)?'inherited':'';
   var platformRow=document.getElementById('platform-row');
   if(platformRow) platformRow.className='row mode-row'+((currentGame!==''&&useDefault)?' inherited':'');
+  renderTouchpadShare();
   var reset=document.getElementById('btn-reset');
   if(reset) reset.disabled=(currentGame!==''&&useDefault);
   // Only offered for a game that actually has something saved — a game merely
@@ -1494,6 +1507,7 @@ function renderModeSelects(){
   renderPadRows();
   renderTriggerSelects();
   renderRumble();
+  renderTouchpadShare();
   renderStickSelects();
 }
 // Show only the rows the current mode actually has settings for.
@@ -1628,6 +1642,7 @@ document.getElementById('use-default').addEventListener('change',function(e){
   cancelListening();
   renderInherit();
   renderRumble();
+  renderTouchpadShare();
 });
 document.getElementById('platform').addEventListener('change',function(e){
   setPlatform(e.target.value);
@@ -2051,6 +2066,39 @@ function renderRumble(){
   });
 })();
 renderRumble();
+// ---- Touchpad Click as Share / Select ----
+var DEFAULT_TOUCHPAD_SHARE='0';
+var touchpadShare=DEFAULT_TOUCHPAD_SHARE;
+function touchpadShareReset(){ touchpadShare=DEFAULT_TOUCHPAD_SHARE; }
+function touchpadShareToProfile(p){ p.touchpadShare=touchpadShare; }
+function touchpadShareFromProfile(p){
+  touchpadShare=(p.hasOwnProperty('touchpadShare')&&p.touchpadShare==='1')?'1':'0';
+}
+function renderTouchpadShare(){
+  var isPs=(platform==='ps'||platform==='ps5');
+  var row=document.getElementById('touchpad-share-row');
+  var box=document.getElementById('touchpad-share');
+  var following=currentGame!==''&&useDefault;
+  if(box){
+    if(following&&PROFILES.hasOwnProperty('')){
+      box.checked=(PROFILES[''].touchpadShare==='1');
+    } else {
+      box.checked=(touchpadShare==='1');
+    }
+    box.disabled=!isPs||following;
+  }
+  if(row){
+    row.className='row mode-row'+((!isPs||following)?' inherited':'');
+  }
+}
+(function(){
+  var box=document.getElementById('touchpad-share');
+  if(box) box.addEventListener('change',function(e){
+    touchpadShare=e.target.checked?'1':'0';
+    renderTouchpadShare();
+  });
+})();
+renderTouchpadShare();
 )HTML"
 // Stick deadzones (#131), in a literal of their own for the same reason as the
 // triggers above. The hooks that bring it into the profile cycle — stickReset,
@@ -2327,7 +2375,7 @@ function railSummaries(){
 // unsaved edits are. useDefault belongs to none of them; it only lights the
 // footer.
 function sectionOfKey(k){
-  if(k==='platform'||k==='rumble') return 'general';
+  if(k==='platform'||k==='rumble'||k==='touchpadShare') return 'general';
   if(k.indexOf('LPAD')===0) return 'lpad';
   if(k.indexOf('RPAD')===0) return 'rpad';
   if(/^[LR]T/.test(k)) return 'triggers';
@@ -3214,6 +3262,7 @@ void RemapWindow::OnWebMessage(const std::wstring& raw) {
                      : (platId == "ps5")    ? ControllerPlatform::DualSense
                      : (platId == "ps")     ? ControllerPlatform::PlayStation
                                             : ControllerPlatform::Xbox;
+        cfg.touchpadClickAsShare = JsonStr(msg, "touchpadShare") == "1";
         cfg.back.l4 = BackButtonBinding::FromId(JsonStr(msg, "L4"));
         cfg.back.l5 = BackButtonBinding::FromId(JsonStr(msg, "L5"));
         cfg.back.r4 = BackButtonBinding::FromId(JsonStr(msg, "R4"));
@@ -3420,6 +3469,9 @@ std::wstring RemapWindow::ProfileJson(const ControllerProfile& p) {
                + std::wstring(p.platform == ControllerPlatform::Switch ? L"switch"
                             : p.platform == ControllerPlatform::DualSense ? L"ps5"
                             : p.platform == ControllerPlatform::PlayStation ? L"ps" : L"xbox")
+               + L"\","
+               L"\"touchpadShare\":\""
+               + std::wstring(p.touchpadClickAsShare ? L"1" : L"0")
                + L"\","
                L"\"L4\":\"" + wid(p.back.l4) + L"\","
                L"\"L5\":\"" + wid(p.back.l5) + L"\","
