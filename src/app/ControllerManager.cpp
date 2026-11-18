@@ -1500,7 +1500,7 @@ void ControllerManager::ReadLoop(Slot* slot) {
     // powered off or the wireless link dropped. User can re-enable manually
     // or switch it back on (which triggers a device-change event that
     // re-enables automatically if m_wantControl is set).
-    static constexpr auto kAutoDisableThreshold = std::chrono::seconds(30);
+    static constexpr auto kAutoDisableThreshold = std::chrono::seconds(12);
 
     while (slot->readRunning) {
         // Keepalive — the firmware silently reverts to lizard mode (and its
@@ -1585,13 +1585,12 @@ void ControllerManager::ReadLoop(Slot* slot) {
                     m_alertFn(L"Controller not responding", text);
                 }
             }
-            // Auto-disable: if the controller has been silent for 30s, give up
+            // Auto-disable: if the controller has been silent for 12s, give up
             // and let the UI thread know so it can clean up game mode safely.
             // The read loop exits; the UI's device-change handler will re-enable
             // when the controller powers back on (device-change event fires).
             if (stalled && elapsed > kAutoDisableThreshold
-                    && slot->gameModeActive
-                    && !slot->powerOffRequested.load()) {
+                    && slot->gameModeActive) {
                 EventLog::Write("STALL: no reports for %llds — auto-disabling game mode "
                                 "(controller appears off) %ls",
                                 static_cast<long long>(

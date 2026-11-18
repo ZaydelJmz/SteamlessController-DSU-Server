@@ -43,8 +43,8 @@ A standalone driver and input wrapper specifically tailored for the **Steam Cont
   * Click pulses only trigger when a real action is bound; inert when set to 'None'.
   * Full translation of dual-motor rumble and **Nintendo HD Rumble** frequency envelopes into realistic tactile waveforms on the Steam Controller LRA actuators.
 
-* 🔋 **Intelligent Auto-Disable Sleep Watchdog (30s)**
-  * When the controller powers off (timeout, battery empty, or button) while the wireless dongle stays plugged in, the app automatically transitions to **Off** after 30 seconds of silence.
+* 🔋 **Intelligent Auto-Disable Sleep Watchdog (12s)**
+  * When the controller powers off (timeout, battery empty, or button) while the wireless dongle stays plugged in, the app automatically transitions to **Off** after 12 seconds of silence.
   * Avoids frozen battery percentages and frees virtual controller slots. Reconnects automatically as soon as the controller powers back on.
 
 * 🧠 **Smart Steam Integration**
@@ -158,8 +158,8 @@ Controlador independiente para el **Steam Controller** en Windows que funciona *
   * Selector "Movement Haptics" para silenciar el zumbido continuo al deslizar el dedo por el trackpad sin perder la respuesta táctil al presionar clics reales.
   * Conversión de vibración de dos motores y del **HD Rumble** de Nintendo a impulsos táctiles LRA del Steam Controller.
 
-* 🔋 **Watchdog de Inactividad y Apagado (30s)**
-  * Si el control se apaga o se duerme con el dongle conectado, la app pasa a estado **Off** tras 30 segundos, liberando el slot virtual y evitando porcentajes de batería congelados. Al encenderse de nuevo, se reconecta automáticamente.
+* 🔋 **Watchdog de Inactividad y Apagado (12s)**
+  * Si el control se apaga o se duerme con el dongle conectado, la app pasa a estado **Off** tras 12 segundos, liberando el slot virtual y evitando porcentajes de batería congelados. Al encenderse de nuevo, se reconecta automáticamente.
 
 * 🧠 **Detección Inteligente de Steam**
   * El mando sigue funcionando en el escritorio aunque Steam esté abierto.
