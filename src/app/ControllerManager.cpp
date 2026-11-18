@@ -799,7 +799,7 @@ void ControllerManager::SetProfile(const ControllerProfile& profile) {
         // Slot 0 / Index 0 (Player 1) is completely vacated before adding the new target.
         // Pump Win32 messages while waiting so the UI remains fluid and responsive.
         const DWORD startTick = GetTickCount();
-        while (GetTickCount() - startTick < 600) {
+        while (GetTickCount() - startTick < 1000) {
             MSG msg;
             while (PeekMessageW(&msg, nullptr, 0, 0, PM_REMOVE)) {
                 TranslateMessage(&msg);

@@ -136,9 +136,8 @@ const wchar_t* AutomationId(Action a) {
 }
 
 std::wstring StatusText(const Model& m) {
-    if (m.deviceDisabled) return L"Controller unavailable";
     if (m.switching)      return L"Switching platform...";
-    if (!m.connected)     return L"No controller detected";
+    if (!m.connected)     return m.deviceDisabled ? L"Controller unavailable" : L"No controller detected";
     if (!m.manual)        return m.controlOn ? L"On · Auto Mode" : L"Off · Auto Mode";
     return m.controlOn ? L"Active" : L"Off";
 }
@@ -661,7 +660,7 @@ struct TrayPanel::Impl : PanelAccessibility::Host {
         hits.clear();
         float y = 0.f;
 
-        lo.banner = model.deviceDisabled;
+        lo.banner = model.deviceDisabled && !model.connected;
         if (lo.banner) {
             lo.bannerR    = D2D1::RectF(0, 0, kWidth, 52);
             lo.bannerBtn  = D2D1::RectF(kWidth - 14 - 80, 12, kWidth - 14, 40);
@@ -888,7 +887,7 @@ struct TrayPanel::Impl : PanelAccessibility::Host {
         // Status line: dot, text, and the battery when there is a reading.
         {
             const std::wstring status = StatusText(m);
-            const UINT32 dotCol = m.deviceDisabled ? kWarn : m.switching ? 0xf59e0b : live ? kOn : kIdle;
+            const UINT32 dotCol = (!m.connected && m.deviceDisabled) ? kWarn : m.switching ? 0xf59e0b : live ? kOn : kIdle;
             float x = lo.status.left;
             const float cy = (lo.status.top + lo.status.bottom) * 0.5f;
             Dot(x + 3.5f, cy, 3.5f, dotCol);

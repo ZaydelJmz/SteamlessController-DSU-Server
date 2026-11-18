@@ -47,7 +47,7 @@ A standalone driver and input wrapper specifically tailored for the **Steam Cont
   * When the controller powers off (timeout, battery empty, or button) while the wireless dongle stays plugged in, the app automatically transitions to **Off** after 12 seconds of silence.
   * Avoids frozen battery percentages and frees virtual controller slots. Reconnects automatically as soon as the controller powers back on.
 
-* 🗺️ **Touchpad Click as Select / Back Option (PlayStation 4 & 5)**
+* 🗺️ **Map Back button to Touchpad Click (PlayStation 4 & 5)**
   * Dedicated toggle in Customize Controls (`General` tab) mapping physical Back to Touchpad Click and vice versa.
   * Essential for cross-platform titles (such as *Fortnite*) where in-game maps or scoreboards are bound to the touchpad click on PlayStation platforms.
 
@@ -165,7 +165,7 @@ Controlador independiente para el **Steam Controller** en Windows que funciona *
 * 🔋 **Watchdog de Inactividad y Apagado (12s)**
   * Si el control se apaga o se duerme con el dongle conectado, la app pasa a estado **Off** tras 12 segundos, liberando el slot virtual y evitando porcentajes de batería congelados. Al encenderse de nuevo, se reconecta automáticamente.
 
-* 🗺️ **Mapeo de Touchpad Click a Select / Back (PlayStation 4 y 5)**
+* 🗺️ **Mapear botón Back a Touchpad Click (PlayStation 4 y 5)**
   * Opción conmutable en Customize Controls (pestaña `General`) para vincular el botón Back físico del Steam Controller con el clic del touchpad de PlayStation y viceversa.
   * Ideal para títulos multiplataforma (como *Fortnite*) donde abrir el mapa o ver la puntuación está ligado al clic del touchpad en consolas de PlayStation.
 

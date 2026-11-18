@@ -340,7 +340,7 @@ R"HTML(
     </div>
     <div class="row mode-row" id="touchpad-share-row">
       <div class="row-top">
-        <span class="pos-label">Touchpad Click as Select / Back</span>
+        <span class="pos-label">Map Back button to Touchpad Click (PS4 / PS5)</span>
         <div class="connector"></div>
         <div style="display:flex;align-items:center;height:34px;">
           <input type="checkbox" id="touchpad-share" style="width:18px;height:18px;accent-color:#4a9eff;cursor:pointer;">
