@@ -360,7 +360,12 @@ static bool DetectCapture(const uint8_t* cur, const uint8_t* prev,
 
 static ControllerManager* g_crashRestoreInstance = nullptr;
 
-static LONG WINAPI CrashRestoreFilter(EXCEPTION_POINTERS*) {
+static LONG WINAPI CrashRestoreFilter(EXCEPTION_POINTERS* ep) {
+    if (ep && ep->ExceptionRecord) {
+        EventLog::Write("CRASH: SEH Exception code=0x%08X at addr=%p",
+                        ep->ExceptionRecord->ExceptionCode,
+                        ep->ExceptionRecord->ExceptionAddress);
+    }
     if (g_crashRestoreInstance)
         g_crashRestoreInstance->EmergencyRestoreAll();
     // Let Windows Error Reporting / debuggers see the crash as usual.
@@ -782,15 +787,15 @@ void ControllerManager::SetProfile(const ControllerProfile& profile) {
     // wrong in the other direction, too: rebuilding on every apply would
     // disconnect and reconnect the pad under the running game each time
     // somebody edited a paddle binding.
-    if (platformChanged && IsGameModeActive()) {
+    if (platformChanged) {
         m_switchingPlatform = true;
         NotifyStateChanged();
 
-        EventLog::Write("GAMEMODE: platform changing from %d to %d; tearing down existing virtual pad...",
-                        static_cast<int>(m_profile.platform), static_cast<int>(profile.platform));
+        EventLog::Write("GAMEMODE: platform changing from %d to %d (active=%d); tearing down existing virtual pad...",
+                        static_cast<int>(m_profile.platform), static_cast<int>(profile.platform),
+                        IsGameModeActive() ? 1 : 0);
 
         for (auto& slot : m_slots) {
-            if (!slot->gameModeActive) continue;
             slot->vc.reset();
         }
 
@@ -808,37 +813,44 @@ void ControllerManager::SetProfile(const ControllerProfile& profile) {
             Sleep(15);
         }
 
-        bool allOk = true;
-        for (auto& slot : m_slots) {
-            if (!slot->gameModeActive) continue;
-            slot->vc = std::make_unique<VirtualController>(
-                m_profile.platform,
-                [this, sc = slot->sc.get()](uint8_t largeMotor, uint8_t smallMotor) {
-                    const uint32_t strength = m_rumbleStrength.load(std::memory_order_relaxed);
-                    largeMotor = static_cast<uint8_t>(largeMotor * strength / 100);
-                    smallMotor = static_cast<uint8_t>(smallMotor * strength / 100);
-                    if (sc->IsOpen()) sc->SetRumble(largeMotor, smallMotor);
-                });
-            if (!slot->vc->IsValid()) {
-                EventLog::Write("GAMEMODE: virtual controller rebuild failed (stage=%s, err=0x%08X)",
-                                slot->vc->FailStage(), slot->vc->LastError());
-                m_lastPadDriverMissing = slot->vc->IsDriverMissing();
-                allOk = false;
-                break;
+        if (IsGameModeActive()) {
+            bool allOk = true;
+            for (auto& slot : m_slots) {
+                if (!slot->gameModeActive) continue;
+                slot->vc = std::make_unique<VirtualController>(
+                    m_profile.platform,
+                    [this, sc = slot->sc.get()](uint8_t largeMotor, uint8_t smallMotor) {
+                        const uint32_t strength = m_rumbleStrength.load(std::memory_order_relaxed);
+                        largeMotor = static_cast<uint8_t>(largeMotor * strength / 100);
+                        smallMotor = static_cast<uint8_t>(smallMotor * strength / 100);
+                        if (sc->IsOpen()) sc->SetRumble(largeMotor, smallMotor);
+                    });
+                if (!slot->vc->IsValid()) {
+                    EventLog::Write("GAMEMODE: virtual controller rebuild failed (stage=%s, err=0x%08X)",
+                                    slot->vc->FailStage(), slot->vc->LastError());
+                    m_lastPadDriverMissing = slot->vc->IsDriverMissing();
+                    allOk = false;
+                    break;
+                }
             }
+
+            m_switchingPlatform = false;
+
+            if (allOk) {
+                for (auto& slot : m_slots)
+                    ApplyPadSettings(*slot);
+                LogPadSettings();
+                UpdateDsuState();
+                NotifyStateChanged();
+                return;
+            }
+            DisableGameMode();
+            return;
         }
 
         m_switchingPlatform = false;
-
-        if (allOk) {
-            for (auto& slot : m_slots)
-                ApplyPadSettings(*slot);
-            LogPadSettings();
-            UpdateDsuState();
-            NotifyStateChanged();
-            return;
-        }
-        DisableGameMode();
+        UpdateDsuState();
+        NotifyStateChanged();
         return;
     }
 
@@ -1352,6 +1364,7 @@ ControllerManager::EnableGameModeSlot(Slot& slot, bool& padUnavailableOut, bool 
 }
 
 void ControllerManager::DisableGameModeSlot(Slot& slot) {
+    slot.vc.reset();
     if (!slot.gameModeActive) return;
     // Forget what was last logged, so the next enable states the pad setup
     // again rather than deduplicating against a previous session's line. Each
@@ -1614,6 +1627,7 @@ void ControllerManager::ReadLoop(Slot* slot) {
         if (stalled) {
             stalled = false;
             EventLog::Write("STALL: reports resumed");
+            NotifyStateChanged();
         }
 
         // Battery status — update DS4 battery level; no further processing needed.

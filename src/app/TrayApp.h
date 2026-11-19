@@ -165,6 +165,8 @@ private:
     void EnableFromUser();
     void ReleaseControl();
     void RecoverStrandedDevices();
+    void PurgeLingeringVirtualControllers();
+    bool RunViGEmBusCycle();
     void WriteHeartbeat();
     // Carry out whatever the pending-disable record asks for: in process when
     // elevated, through the helper's task otherwise. Shared so there is one

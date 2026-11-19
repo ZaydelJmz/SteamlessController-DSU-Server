@@ -29,11 +29,24 @@ namespace ViGEmBusInfo {
 struct Bus {
     std::wstring devicePath;    // \\?\ROOT#SYSTEM#0001#{96e42b22-...}
     std::wstring friendlyName;  // as Device Manager shows it; may be empty
+    std::wstring instanceId;    // e.g. ROOT\SYSTEM\0004
+    std::vector<std::wstring> children; // e.g. USB\VID_045E&PID_028E\01
 };
 
 // Every present device publishing the ViGEm bus interface. Empty is the one
 // case that genuinely means "go install the driver".
 std::vector<Bus> Enumerate();
+
+// Forcefully unplugs all virtual controller targets across all detected ViGEm buses.
+// Used at startup and shutdown to clean up any orphaned devices left behind by crashes
+// or improper disconnects.
+void UnplugAllTargets();
+
+// Returns true if any ViGEm bus currently has active child devices (virtual gamepads)
+bool HasAnyChildren();
+
+// Queries children of all present ViGEm buses
+std::vector<std::wstring> GetAllChildren();
 
 // One log line: how many buses answered, and what they call themselves.
 std::wstring Describe(const std::vector<Bus>& buses);

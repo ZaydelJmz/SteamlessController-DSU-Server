@@ -27,6 +27,7 @@ public:
     const wchar_t* LastError() const { return m_errorMessage.c_str(); }
 
     static void StopSidecar();
+    static void CleanupAllBuses();
 
 private:
     bool EnsureServerReady();

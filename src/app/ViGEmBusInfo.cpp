@@ -2,6 +2,7 @@
 
 #include <windows.h>
 #include <setupapi.h>
+#include <cfgmgr32.h>
 
 // GUID_DEVINTERFACE_BUSENUM_VIGEM. Taken from the vendored client rather than
 // copied, so updating third_party cannot leave a stale value behind here — the
@@ -62,11 +63,58 @@ std::vector<ViGEmBusInfo::Bus> ViGEmBusInfo::Enumerate() {
         if (!SetupDiGetDeviceInterfaceDetailW(set, &iface, detail, bytes, nullptr, &info))
             continue;
 
-        buses.push_back({detail->DevicePath, ReadName(set, info)});
+        Bus bus;
+        bus.devicePath   = detail->DevicePath;
+        bus.friendlyName = ReadName(set, info);
+
+        wchar_t devId[MAX_DEVICE_ID_LEN] = {0};
+        if (CM_Get_Device_IDW(info.DevInst, devId, MAX_DEVICE_ID_LEN, 0) == CR_SUCCESS) {
+            bus.instanceId = devId;
+        }
+
+        DEVINST childDev = 0;
+        if (CM_Get_Child(&childDev, info.DevInst, 0) == CR_SUCCESS) {
+            while (childDev) {
+                ULONG status = 0, problem = 0;
+                if (CM_Get_DevNode_Status(&status, &problem, childDev, 0) == CR_SUCCESS) {
+#ifndef DN_WILL_BE_REMOVED
+                    constexpr ULONG DN_WILL_BE_REMOVED = 0x00040000;
+#endif
+                    if (!(status & DN_WILL_BE_REMOVED)) {
+                        wchar_t childId[MAX_DEVICE_ID_LEN] = {0};
+                        if (CM_Get_Device_IDW(childDev, childId, MAX_DEVICE_ID_LEN, 0) == CR_SUCCESS) {
+                            bus.children.push_back(childId);
+                        }
+                    }
+                }
+                DEVINST nextSibling = 0;
+                if (CM_Get_Sibling(&nextSibling, childDev, 0) != CR_SUCCESS) break;
+                childDev = nextSibling;
+            }
+        }
+
+        buses.push_back(std::move(bus));
     }
 
     SetupDiDestroyDeviceInfoList(set);
     return buses;
+}
+
+bool ViGEmBusInfo::HasAnyChildren() {
+    for (const auto& bus : Enumerate()) {
+        if (!bus.children.empty()) return true;
+    }
+    return false;
+}
+
+std::vector<std::wstring> ViGEmBusInfo::GetAllChildren() {
+    std::vector<std::wstring> all;
+    for (const auto& bus : Enumerate()) {
+        for (const auto& child : bus.children) {
+            all.push_back(child);
+        }
+    }
+    return all;
 }
 
 std::wstring ViGEmBusInfo::Describe(const std::vector<Bus>& buses) {
@@ -88,4 +136,50 @@ std::wstring ViGEmBusInfo::Describe(const std::vector<Bus>& buses) {
                                               : buses[i].friendlyName;
     }
     return text;
+}
+
+void ViGEmBusInfo::UnplugAllTargets() {
+    const auto buses = Enumerate();
+    for (const auto& bus : buses) {
+        HANDLE hBus = CreateFileW(
+            bus.devicePath.c_str(),
+            GENERIC_READ | GENERIC_WRITE,
+            FILE_SHARE_READ | FILE_SHARE_WRITE,
+            nullptr,
+            OPEN_EXISTING,
+            FILE_ATTRIBUTE_NORMAL | FILE_FLAG_NO_BUFFERING | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED,
+            nullptr
+        );
+        if (hBus == INVALID_HANDLE_VALUE) continue;
+
+        OVERLAPPED ol{};
+        ol.hEvent = CreateEventW(nullptr, FALSE, FALSE, nullptr);
+
+        for (ULONG serial = 1; serial <= 16; ++serial) {
+            VIGEM_UNPLUG_TARGET unplug{};
+            unplug.Size = sizeof(unplug);
+            unplug.SerialNo = serial;
+            DWORD transferred = 0;
+            BOOL ok = DeviceIoControl(
+                hBus,
+                IOCTL_VIGEM_UNPLUG_TARGET,
+                &unplug,
+                sizeof(unplug),
+                nullptr,
+                0,
+                &transferred,
+                &ol
+            );
+            DWORD err = GetLastError();
+            if (ol.hEvent) {
+                BOOL res = GetOverlappedResult(hBus, &ol, &transferred, TRUE);
+                wprintf(L"  Serial %u: DeviceIoControl=%d, GetOverlappedResult=%d (err=%lu)\n", serial, ok, res, GetLastError());
+            } else {
+                wprintf(L"  Serial %u: DeviceIoControl=%d (err=%lu)\n", serial, ok, err);
+            }
+        }
+
+        if (ol.hEvent) CloseHandle(ol.hEvent);
+        CloseHandle(hBus);
+    }
 }

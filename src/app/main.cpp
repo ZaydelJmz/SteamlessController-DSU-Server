@@ -1,4 +1,5 @@
 #include "TrayApp.h"
+#include "EventLog.h"
 #include <Windows.h>
 #include <clocale>
 
@@ -24,17 +25,26 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int) {
 
     // Prevent multiple instances.
     HANDLE mutex = CreateMutexW(nullptr, FALSE, L"SteamlessController_SingleInstance");
-    if (!mutex) return 0;
+    if (!mutex) {
+        EventLog::Write("MAIN: CreateMutex failed with %lu", GetLastError());
+        return 0;
+    }
     const DWORD wait = WaitForSingleObject(mutex, 0);
     if (wait != WAIT_OBJECT_0 && wait != WAIT_ABANDONED) {
         CloseHandle(mutex);
         return 0;
     }
 
-    TrayApp app;
     int result = 0;
-    if (app.Init(hInstance))
-        result = app.Run();
+    try {
+        TrayApp app;
+        if (app.Init(hInstance))
+            result = app.Run();
+    } catch (const std::exception& e) {
+        EventLog::Write("EXCEPTION: std::exception: %s", e.what());
+    } catch (...) {
+        EventLog::Write("EXCEPTION: unknown C++ exception");
+    }
 
     CloseHandle(mutex);
     return result;

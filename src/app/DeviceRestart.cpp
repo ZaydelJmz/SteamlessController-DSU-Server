@@ -492,6 +492,37 @@ bool TakeReconcileOnlyRequest() {
     return false;
 }
 
+static std::wstring ViGEmCycleRequestPath() {
+    wchar_t local[MAX_PATH];
+    if (!GetEnvironmentVariableW(L"LOCALAPPDATA", local, MAX_PATH)) return L"";
+    const std::wstring dir = std::wstring(local) + L"\\SteamlessController";
+    CreateDirectoryW(dir.c_str(), nullptr);
+    return dir + L"\\vigem_cycle.request";
+}
+
+bool RequestViGEmCycle() {
+    const std::wstring path = ViGEmCycleRequestPath();
+    if (path.empty()) return false;
+    FILE* f = nullptr;
+    if (_wfopen_s(&f, path.c_str(), L"w") == 0 && f) {
+        fputs("1\n", f);
+        fclose(f);
+        return true;
+    }
+    return false;
+}
+
+bool TakeViGEmCycleRequest() {
+    const std::wstring path = ViGEmCycleRequestPath();
+    if (path.empty()) return false;
+    const DWORD attr = GetFileAttributesW(path.c_str());
+    if (attr != INVALID_FILE_ATTRIBUTES) {
+        DeleteFileW(path.c_str());
+        return true;
+    }
+    return false;
+}
+
 bool DisarmPendingDisable() {
     const std::wstring path = PendingPath();
     if (path.empty()) return false;

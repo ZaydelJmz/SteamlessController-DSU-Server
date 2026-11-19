@@ -141,15 +141,21 @@ if (MSVC)
 endif()
 
 # Elevated on-demand helper — restarts the controller device node so the tray
-# app (which never runs elevated) can take the device from a running Steam.
+# app (which never runs elevated) can take the device from a running Steam,
+# and resets virtual gamepad buses when ghost controllers are detected.
 add_executable(SteamlessDeviceCycle WIN32
     src/helper/DeviceCycleHelper.cpp
     src/app/DeviceRestart.cpp
     src/app/HandleFinder.cpp
+    src/app/ViGEmBusInfo.cpp
 )
-target_link_libraries(SteamlessDeviceCycle PRIVATE SteamController cfgmgr32)
+target_include_directories(SteamlessDeviceCycle PRIVATE
+    src
+    third_party/ViGEmClient-b66d02d/include
+)
+target_link_libraries(SteamlessDeviceCycle PRIVATE SteamController ViGEmClient setupapi cfgmgr32)
 if (MSVC)
-    target_compile_options(SteamlessDeviceCycle PRIVATE /W4 /WX /utf-8)
+    target_compile_options(SteamlessDeviceCycle PRIVATE /W4 /WX /utf-8 /wd4828)
 endif()
 
 # Directional pad checks — the sector maths wraps at 0/360, holds a sector

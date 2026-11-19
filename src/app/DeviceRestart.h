@@ -118,6 +118,10 @@ bool ArmPendingDisables(const std::vector<std::wstring>& instanceIds);
 bool RequestReconcileOnly();
 bool TakeReconcileOnlyRequest();
 
+// ViGEm bus cycle request flag to purge orphan virtual controllers.
+bool RequestViGEmCycle();
+bool TakeViGEmCycleRequest();
+
 // Drop the record. Call only once the devnode is confirmed enabled again.
 bool DisarmPendingDisable();
 

@@ -2,6 +2,7 @@
 #include "ControllerManager.h"
 #include "ControllerPlatform.h"
 #include "ViiperClient.h"
+#include "ViGEmBusInfo.h"
 #include "DeviceRestart.h"
 #include "EventLog.h"
 #include "GameLibrary.h"
@@ -126,12 +127,18 @@ bool TrayApp::Init(HINSTANCE hInstance) {
     wc.lpfnWndProc   = WndProc;
     wc.hInstance     = hInstance;
     wc.lpszClassName = WNDCLASS_NAME;
-    if (!RegisterClassExW(&wc)) return false;
+    if (!RegisterClassExW(&wc)) {
+        EventLog::Write("INIT: RegisterClassExW failed with %lu", GetLastError());
+        return false;
+    }
 
     // Hidden top-level window so it receives broadcast shell notifications including TaskbarCreated when Explorer restarts.
     m_hwnd = CreateWindowExW(0, WNDCLASS_NAME, L"SteamlessController",
                              0, 0, 0, 0, 0, nullptr, nullptr, hInstance, nullptr);
-    if (!m_hwnd) return false;
+    if (!m_hwnd) {
+        EventLog::Write("INIT: CreateWindowExW failed with %lu", GetLastError());
+        return false;
+    }
 
     // Register for HID device arrival/removal notifications.
     DEV_BROADCAST_DEVICEINTERFACE_W filter{};
@@ -169,83 +176,37 @@ bool TrayApp::Init(HINSTANCE hInstance) {
     InputInjection::SetAlertCallback(raiseAlert);
 
     LoadSettings();
-    // Converge the startup mechanism with the loaded mode — e.g. the first
-    // elevated run after enabling in-game mode migrates the Run key to the
-    // highest-privileges logon task (and back when the mode changes).
     UpdateStartupRegistration();
     AddTrayIcon();
     UpdateTrayIcon(m_controller->IsConnected(), m_controller->IsGameModeActive(),
                    m_controller->IsGameModeShared(), false);
 
-    // The in-game mode needs the elevated cycle helper to take the controller
-    // back from a running Steam. Settle that here rather than on first use:
-    // the installer normally registers the task, but when it hasn't (running
-    // from a build folder, or after an uninstall) the only other trigger is
-    // the cycle itself — so the UAC prompt ambushed the user mid-game-launch.
-    // A no-op once the task exists, which is the common case. Must run after
-    // AddTrayIcon, since a declined prompt reports via the tray balloon.
     if (m_autoMode == AutoMode::OffOnlyInGame)
         EnsureCycleTaskRegistered();
 
-    // Deliberately last, and every part of that ordering is load-bearing: it
-    // reports through the tray balloon, which does nothing until AddTrayIcon has
-    // run; it honours the notification setting, which LoadSettings supplies; and
-    // it may need the elevated helper, so it goes after the task registration
-    // above rather than raising a second UAC prompt of its own.
-    //
-    // Nothing earlier needs the controller to exist. A device brought back here
-    // announces itself as an ordinary DBT_DEVICEARRIVAL once the message loop
-    // starts, and is picked up on that path like any other replug.
     RecoverStrandedDevices();
+    PurgeLingeringVirtualControllers();
 
-    // Runs for the life of the process in every mode. Nothing here depends on
-    // it, which is the point: it exists so that the log can tell "idle" from
-    // "stopped" without anyone having to reproduce the fault.
     SetTimer(m_hwnd, IDT_HEARTBEAT, HEARTBEAT_MS, nullptr);
     SetTimer(m_hwnd, IDT_STEAM_RECONCILE, STEAM_RECONCILE_MS, nullptr);
 
-    // Start watching for Steam regardless of auto mode — the state is applied
-    // only when auto mode is on, and having it warm makes toggling auto mode
-    // take effect instantly. The initial callback asserts the correct state
-    // at startup (which also self-heals after a previous crash).
     m_steamWatcher.Start([this](SteamState state) {
         PostMessageW(m_hwnd, WM_STEAMSTATE, static_cast<WPARAM>(state), 0);
     });
 
-    // Nothing switches profiles while the window is up, so a profile created
-    // for the game the user is already in has to be picked up when it closes.
     m_remapWindow.SetOnClose([this] { RefreshActiveProfile(); });
 
-    // What Steam has installed, for matching a running game back to the app
-    // id its profile is keyed by.
     RefreshSteamApps();
 
-    // Per-game profiles. Started unconditionally for the same reason as the
-    // Steam watcher: the callback decides whether anything applies, and a
-    // watcher that is already warm makes the first switch instant. Costs one
-    // hook and no thread — it only runs when the user changes applications.
     if (!m_foregroundWatcher.Start([this](const ForegroundIdentity& id) {
             OnForegroundChanged(id);
         }))
         EventLog::Write("PROFILE: foreground watcher could not start — "
                         "per-game profiles will not switch by themselves");
 
-    // Resolve what is in front right now. The watcher above only reports
-    // changes, so without this a user who launches us while already sitting
-    // in a game would be judged against the default profile until they next
-    // switched windows — and with a default that hands the controller back,
-    // that means no controller.
-    //
-    // Selection only, no control decision: the first Steam state is still in
-    // flight on the watcher thread, and deciding against the NoSteam it has
-    // not confirmed yet would be guessing.
     SelectProfile(MatchProfile(ForegroundWatcher::Current()));
     PushActiveProfile();
 
-    // Manual mode only — the auto modes decide for themselves once the Steam
-    // watcher's first callback lands. Last, so the profile above is already
-    // pushed and the acquire that follows carries the right bindings from the
-    // first frame.
     if (m_autoMode == AutoMode::Manual && m_enableOnLaunch)
         EnableFromUser();
 
@@ -271,6 +232,8 @@ LRESULT CALLBACK TrayApp::WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
 LRESULT TrayApp::HandleMessage(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
     if (msg == m_wmTaskbar) {
         AddTrayIcon();
+        UpdateTrayIcon(m_controller->IsConnected(), m_controller->IsGameModeActive(),
+                       m_controller->IsGameModeShared(), false);
         return 0;
     }
 
@@ -550,7 +513,9 @@ LRESULT TrayApp::HandleMessage(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
         return TRUE;
 
     case WM_DESTROY:
+        if (m_controller) m_controller->DisableGameMode();
         ViiperClient::StopSidecar();
+        ViGEmBusInfo::UnplugAllTargets();
         PostQuitMessage(0);
         return 0;
     }
@@ -1140,6 +1105,7 @@ void TrayApp::TryAcquireController(uint32_t stateWaitMs) {
         // a game the whole time it was not — no foreground change is coming
         // to tell us, so ask.
         RefreshActiveProfile();
+        UpdateTrayIcon(m_controller->IsConnected(), true, m_controller->IsGameModeShared(), false);
         return;
     }
     if (!m_controller->IsConnected()) return;  // nothing plugged in — arrival will retrigger
@@ -1456,6 +1422,43 @@ void TrayApp::RecoverStrandedDevices() {
                 m_disabledDeviceNode = disabledNodes.front();
             }
         }
+    }
+}
+
+bool TrayApp::RunViGEmBusCycle() {
+    if (IsProcessElevated()) {
+        const auto buses = ViGEmBusInfo::Enumerate();
+        bool any = false;
+        for (const auto& bus : buses) {
+            if (bus.instanceId.empty()) continue;
+            std::wstring cmd = L"pnputil.exe /restart-device \"" + bus.instanceId + L"\"";
+            if (RunToolHidden(cmd)) any = true;
+        }
+        return any;
+    }
+
+    DeviceRestart::RequestViGEmCycle();
+
+    std::wstring run = L"schtasks.exe /Run /TN \"";
+    run += CYCLE_TASK_NAME;
+    run += L"\"";
+    if (RunToolHidden(run)) return true;
+
+    if (EnsureCycleTaskRegistered() && RunToolHidden(std::move(run)))
+        return true;
+
+    return false;
+}
+
+void TrayApp::PurgeLingeringVirtualControllers() {
+    if (!ViGEmBusInfo::HasAnyChildren()) return;
+
+    const auto children = ViGEmBusInfo::GetAllChildren();
+    EventLog::Write("STARTUP: %zu lingering virtual controller(s) found on ViGEmBus — requesting bus cycle purge",
+                    children.size());
+
+    if (!RunViGEmBusCycle()) {
+        EventLog::Write("STARTUP: elevated ViGEmBus cycle helper could not be run");
     }
 }
 

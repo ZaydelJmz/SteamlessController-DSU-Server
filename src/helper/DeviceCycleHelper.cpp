@@ -26,6 +26,7 @@
 #include <string>
 #include "app/DeviceRestart.h"
 #include "app/HandleFinder.h"
+#include "app/ViGEmBusInfo.h"
 #include "steam/SteamController.h"
 
 // Defined below; used by the cycle path that appears before it.
@@ -366,6 +367,47 @@ static int FindHoldersOnly() {
     return 0;
 }
 
+static int CycleViGEmBus() {
+    CycleLog("VIGEM: querying virtual gamepad buses to cycle...");
+    const auto buses = ViGEmBusInfo::Enumerate();
+    if (buses.empty()) {
+        CycleLog("VIGEM: no ViGEm buses found");
+        return 0;
+    }
+    bool anyCycled = false;
+    for (const auto& bus : buses) {
+        CycleLog("VIGEM: restarting bus '%ls' (InstanceId: '%ls', %zu child(ren))",
+                 bus.friendlyName.c_str(), bus.instanceId.c_str(), bus.children.size());
+
+        if (bus.instanceId.empty()) continue;
+
+        // 1. Force-remove all HID game controller nodes and their subtrees to break handles held by browsers / Steam
+        RunToolHidden(L"pnputil.exe /remove-device /deviceid \"HID\\VID_054C&PID_05C4\" /subtree /force");
+        RunToolHidden(L"pnputil.exe /remove-device /deviceid \"HID\\VID_045E&PID_028E&IG_00\" /subtree /force");
+        RunToolHidden(L"pnputil.exe /remove-device /deviceid \"HID\\VID_045E&PID_028E\" /subtree /force");
+
+        // 2. Remove each child of ViGEmBus with /subtree /force
+        for (const auto& child : bus.children) {
+            CycleLog("VIGEM: removing ghost child '%ls'...", child.c_str());
+            std::wstring rmCmd = L"pnputil.exe /remove-device \"" + child + L"\" /subtree /force";
+            bool rmOk = RunToolHidden(rmCmd);
+            CycleLog("VIGEM: pnputil /remove-device on '%ls' exited with %s",
+                     child.c_str(), rmOk ? "success" : "failure");
+        }
+
+        // 3. Force-remove any remaining virtual USB targets and subtrees
+        RunToolHidden(L"pnputil.exe /remove-device /deviceid \"USB\\VID_054C&PID_05C4\" /subtree /force");
+        RunToolHidden(L"pnputil.exe /remove-device /deviceid \"USB\\VID_045E&PID_028E&IG_00\" /subtree /force");
+        RunToolHidden(L"pnputil.exe /remove-device /deviceid \"USB\\VID_045E&PID_028E\" /subtree /force");
+
+        // 4. Rescan devices so Windows drops disconnected instances immediately
+        RunToolHidden(L"pnputil.exe /scan-devices");
+
+        anyCycled = true;
+    }
+    return anyCycled ? 0 : 1;
+}
+
 int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR cmdLine, int) {
     // cycle.log has the same %ls problem the event log does, and more to lose
     // by it: the holder lists and veto names it exists to record are exactly
@@ -376,6 +418,8 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR cmdLine, int) {
     if (cmdLine && wcsstr(cmdLine, L"--unregister"))   return UnregisterTask();
     if (cmdLine && wcsstr(cmdLine, L"--find-holders")) return FindHoldersOnly();
     if (cmdLine && wcsstr(cmdLine, L"--reconcile"))    return ReconcilePending();
+    if (cmdLine && wcsstr(cmdLine, L"--cycle-vigem"))  return CycleViGEmBus();
+    if (DeviceRestart::TakeViGEmCycleRequest())        return CycleViGEmBus();
     if (DeviceRestart::TakeReconcileOnlyRequest())      return ReconcilePending();
     return CycleDevices();
 }

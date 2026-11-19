@@ -11,6 +11,7 @@
 #include <chrono>
 #include <cctype>
 #include <cstdio>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -241,13 +242,19 @@ bool ViiperClient::SendInput(const uint8_t* data, size_t size) {
 }
 
 bool ViiperClient::EnsureServerReady() {
-    if (PingServer()) return true;
+    if (PingServer()) {
+        CleanupAllBuses();
+        return true;
+    }
     if (m_unsupported) return false;
     std::lock_guard<std::mutex> lock(g_sidecar.mutex);
     if (!g_sidecar.Running() && !SpawnBundledServer()) return false;
     for (int i = 0; i < 40; ++i) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        if (PingServer()) return true;
+        if (PingServer()) {
+        CleanupAllBuses();
+        return true;
+    }
         if (m_unsupported) return false;
     }
     return Fail("viiper_start", L"viiper.exe started but did not answer on 127.0.0.1:3242.");
@@ -371,8 +378,48 @@ void ViiperClient::FeedbackLoop(std::uintptr_t streamSocket) {
     }
 }
 
+void ViiperClient::CleanupAllBuses() {
+    SOCKET s = ConnectLoopback(1000);
+    if (s == INVALID_SOCKET) return;
+    std::string req = "bus/list";
+    req.push_back('\0');
+    std::string response;
+    if (!SendAll(s, req.data(), req.size()) || !ReceiveUntilClose(s, response)) {
+        closesocket(s);
+        return;
+    }
+    closesocket(s);
+
+    size_t start = response.find('[');
+    size_t end = response.find(']', start);
+    if (start == std::string::npos || end == std::string::npos) return;
+    std::string arr = response.substr(start + 1, end - start - 1);
+    std::stringstream ss(arr);
+    std::string item;
+    while (std::getline(ss, item, ',')) {
+        while (!item.empty() && std::isspace(static_cast<unsigned char>(item.front()))) item.erase(item.begin());
+        while (!item.empty() && std::isspace(static_cast<unsigned char>(item.back()))) item.pop_back();
+        if (item.empty()) continue;
+        try {
+            uint32_t busId = static_cast<uint32_t>(std::stoul(item));
+            if (busId > 0) {
+                SOCKET s2 = ConnectLoopback(1000);
+                if (s2 != INVALID_SOCKET) {
+                    std::string r2 = "bus/remove " + std::to_string(busId);
+                    r2.push_back('\0');
+                    std::string dummy;
+                    SendAll(s2, r2.data(), r2.size());
+                    ReceiveUntilClose(s2, dummy);
+                    closesocket(s2);
+                }
+            }
+        } catch (...) {}
+    }
+}
+
 void ViiperClient::StopSidecar() {
     std::lock_guard<std::mutex> lk(g_sidecar.mutex);
+    CleanupAllBuses();
     if (g_sidecar.handle) {
         TerminateProcess(g_sidecar.handle, 0);
         WaitForSingleObject(g_sidecar.handle, 1000);

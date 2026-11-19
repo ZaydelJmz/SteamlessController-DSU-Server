@@ -79,7 +79,7 @@ const Strings kEs[] = {
     // StatusOff
     ENTRY("Desactivado", "Desactivado"),
     // StatusSwitching
-    ENTRY("Cambiando plataforma...", "Cambiando plataforma..."),
+    ENTRY("Cambiando de plataforma...", "Cambiando de plataforma..."),
     // StatusNoController
     ENTRY("Mando no detectado", "Mando no detectado"),
     // StatusUnavailable

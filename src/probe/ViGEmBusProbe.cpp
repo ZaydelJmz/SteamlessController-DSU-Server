@@ -22,15 +22,22 @@
 #include <cstdio>
 
 int wmain() {
+    wprintf(L"Cleaning up ViGEm targets...\n");
+    ViGEmBusInfo::UnplugAllTargets();
     const auto buses = ViGEmBusInfo::Enumerate();
 
     wprintf(L"%ls\n\n", ViGEmBusInfo::Describe(buses).c_str());
 
     for (size_t i = 0; i < buses.size(); ++i) {
-        wprintf(L"[%zu] %ls\n", i + 1,
+        wprintf(L"[%zu] %ls (InstanceId: %ls, children: %zu)\n", i + 1,
                 buses[i].friendlyName.empty() ? L"(no friendly name)"
-                                              : buses[i].friendlyName.c_str());
+                                              : buses[i].friendlyName.c_str(),
+                buses[i].instanceId.c_str(),
+                buses[i].children.size());
         wprintf(L"    %ls\n", buses[i].devicePath.c_str());
+        for (const auto& c : buses[i].children) {
+            wprintf(L"      child: %ls\n", c.c_str());
+        }
     }
 
     if (buses.size() > 1)
