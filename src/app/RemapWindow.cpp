@@ -886,9 +886,9 @@ var INPUTS = [
   {id:'Down',      glyph:'&#x2193;', label:'D-Pad Down', labelEs:'Cruceta Abajo', bg:'#2a3f57',fg:'#cdd9e3'},
   {id:'Left',      glyph:'&#x2190;', label:'D-Pad Left', labelEs:'Cruceta Izquierda', bg:'#2a3f57',fg:'#cdd9e3'},
   {id:'Right',     glyph:'&#x2192;', label:'D-Pad Right', labelEs:'Cruceta Derecha', bg:'#2a3f57',fg:'#cdd9e3'},
-  {id:'leftMouse', glyph:'LMB',     label:'Left Click', labelEs:'Clic Izquierdo', bg:'#3a2a5a',fg:'#c9b8f0'},
-  {id:'rightMouse',glyph:'RMB',     label:'Right Click', labelEs:'Clic Derecho', bg:'#3a2a5a',fg:'#c9b8f0'},
-  {id:'mouse:middle',glyph:'MMB',   label:'Middle Click', labelEs:'Clic Central', bg:'#3a2a5a',fg:'#c9b8f0'},
+  {id:'leftMouse', glyph:'LMB',     label:'Left Click', labelEs:'Click Izquierdo', bg:'#3a2a5a',fg:'#c9b8f0'},
+  {id:'rightMouse',glyph:'RMB',     label:'Right Click', labelEs:'Click Derecho', bg:'#3a2a5a',fg:'#c9b8f0'},
+  {id:'mouse:middle',glyph:'MMB',   label:'Middle Click', labelEs:'Click Central', bg:'#3a2a5a',fg:'#c9b8f0'},
   {id:'mouse:x1',  glyph:'M4',      label:'Mouse 4', labelEs:'Ratón 4', bg:'#3a2a5a',fg:'#c9b8f0'},
   {id:'mouse:x2',  glyph:'M5',      label:'Mouse 5', labelEs:'Ratón 5', bg:'#3a2a5a',fg:'#c9b8f0'},
   {id:'menu',      glyph:'MNU',     label:'Menu', labelEs:'Menú', bg:'#2a3a2a',fg:'#9ac89a',
@@ -900,7 +900,7 @@ var INPUTS = [
   {id:'touchKeyboard',glyph:'KBD',  label:'Touch Keyboard', labelEs:'Teclado en Pantalla', bg:'#2a3a2a',fg:'#9ac89a'},
   {id:'guide',     glyph:'GDE',     label:'Guide Button', labelEs:'Botón Guía', bg:'#2a3a2a',fg:'#9ac89a',
    ps:{glyph:'PS',label:'PS Button', labelEs:'Botón PS', bg:'#2a3a2a',fg:'#9ac89a'}},
-  {id:'touchpadClick',glyph:'TPC',  label:'PlayStation Touchpad Click', labelEs:'Clic Touchpad PlayStation', bg:'#2a3a2a',fg:'#9ac89a'},
+  {id:'touchpadClick',glyph:'TPC',  label:'PlayStation Touchpad Click', labelEs:'Click Touchpad PlayStation', bg:'#2a3a2a',fg:'#9ac89a'},
   {id:'none',      glyph:'OFF',     label:'Off', labelEs:'Desactivado', bg:'#1e2d3d',fg:'#5a7a9a'},
 ];
 var byId = {};
@@ -934,10 +934,10 @@ var ROWS = [
   {id:'R4',posTag:'UPPER',posTagEs:'SUPERIOR',posLabel:'Upper grip',posLabelEs:'Agarre superior'},
   {id:'R5',posTag:'LOWER',posTagEs:'INFERIOR',posLabel:'Lower grip',posLabelEs:'Agarre inferior'},
   {id:'QAM',badge:'&hellip;',posTag:'MENU',posTagEs:'MENÚ',posLabel:'Quick Access (...)',posLabelEs:'Acceso Rápido (...)'},
-  {id:'LPAD',badge:'L',posTag:'PAD',posTagEs:'PAD',posLabel:'Trackpad Click',posLabelEs:'Clic de Trackpad'},
-  {id:'RPAD',badge:'R',posTag:'PAD',posTagEs:'PAD',posLabel:'Trackpad Click',posLabelEs:'Clic de Trackpad'},
-  {id:'LPADtouch',badge:'L',posTag:'TAP',posTagEs:'TOQUE',posLabel:'Trackpad Tap',posLabelEs:'Toque de Trackpad'},
-  {id:'RPADtouch',badge:'R',posTag:'TAP',posTagEs:'TOQUE',posLabel:'Trackpad Tap',posLabelEs:'Toque de Trackpad'},
+  {id:'LPAD',badge:'L',posTag:'PAD',posTagEs:'PAD',posLabel:'Trackpad Click',posLabelEs:'Click de Trackpad'},
+  {id:'RPAD',badge:'R',posTag:'PAD',posTagEs:'PAD',posLabel:'Trackpad Click',posLabelEs:'Click de Trackpad'},
+  {id:'LPADtouch',badge:'L',posTag:'TAP',posTagEs:'TOQUE',posLabel:'Trackpad Tap',posLabelEs:'Toque en Trackpad'},
+  {id:'RPADtouch',badge:'R',posTag:'TAP',posTagEs:'TOQUE',posLabel:'Trackpad Tap',posLabelEs:'Toque en Trackpad'},
   {id:'LPADup',   badge:'L',posTag:'UP',   posTagEs:'ARRIBA', posLabel:'Up',   posLabelEs:'Arriba'},
   {id:'LPADdown', badge:'L',posTag:'DOWN', posTagEs:'ABAJO',  posLabel:'Down', posLabelEs:'Abajo'},
   {id:'LPADleft', badge:'L',posTag:'LEFT', posTagEs:'IZQ',    posLabel:'Left', posLabelEs:'Izquierda'},
@@ -999,13 +999,13 @@ function applyLanguage(lang){
   setT('#pane-general .pane-head h2', 'General');
   setT('#pane-general .pane-head p', isEs ? 'Qué mando ven tus juegos y la intensidad de la vibración.' : 'Which controller your games see, and how strongly it rumbles.');
   setT('#pane-lpad .pane-head h2', isEs ? 'Trackpad Izquierdo' : 'Left Trackpad');
-  setT('#pane-lpad .pane-head p', isEs ? 'Qué hace el pad y qué envía cada pulsación al juego. Haz clic en Reasignar para cambiar una acción.' : 'What the pad does, and what each press sends to the game. Click Rebind, then press any gamepad button, key or mouse button.');
+  setT('#pane-lpad .pane-head p', isEs ? 'Qué hace el pad y qué envía cada pulsación al juego. Haz click en Reasignar para cambiar una acción.' : 'What the pad does, and what each press sends to the game. Click Rebind, then press any gamepad button, key or mouse button.');
   setT('#pane-rpad .pane-head h2', isEs ? 'Trackpad Derecho' : 'Right Trackpad');
-  setT('#pane-rpad .pane-head p', isEs ? 'Qué hace el pad y qué envía cada pulsación al juego. Haz clic en Reasignar para cambiar una acción.' : 'What the pad does, and what each press sends to the game. Click Rebind, then press any gamepad button, key or mouse button.');
+  setT('#pane-rpad .pane-head p', isEs ? 'Qué hace el pad y qué envía cada pulsación al juego. Haz click en Reasignar para cambiar una acción.' : 'What the pad does, and what each press sends to the game. Click Rebind, then press any gamepad button, key or mouse button.');
   setT('#pane-triggers .pane-head h2', isEs ? 'Gatillos' : 'Triggers');
   setT('#pane-triggers .pane-head p', isEs ? 'Presiona un gatillo para ver su recorrido. Doble Etapa añade un segundo botón al final del recorrido.' : 'Pull a trigger to watch it move. Dual Stage adds a second button at the end of the pull.');
   setT('#pane-buttons .pane-head h2', isEs ? 'Botones' : 'Buttons');
-  setT('#pane-buttons .pane-head p', isEs ? 'Los cuatro agarres traseros y el botón de Acceso Rápido (…). Haz clic en Reasignar para cambiar una acción.' : 'The four grips and the Quick Access (…) button between the trackpads. Click Rebind, then press any gamepad button, any key, or your mouse\'s middle or thumb buttons. Pick Off to stop a button doing anything at all.');
+  setT('#pane-buttons .pane-head p', isEs ? 'Los cuatro agarres traseros y el botón de Acceso Rápido (…). Haz click en Reasignar para cambiar una acción. Elige Desactivado para apagar un botón por completo.' : 'The four grips and the Quick Access (…) button between the trackpads. Click Rebind, then press any gamepad button, any key, or your mouse\'s middle or thumb buttons. Pick Off to stop a button doing anything at all.');
   setT('#pane-sticks .pane-head h2', 'Sticks');
   setT('#pane-sticks .pane-head p', isEs ? 'Dónde empieza y termina de responder cada stick. Arrastra dentro de la vista previa para probar una posición.' : 'Where each stick starts and stops responding. Drag inside a preview to try a position.');
 
@@ -1023,7 +1023,7 @@ function applyLanguage(lang){
 
   // Pos labels
   setT('#platform-row .pos-label', isEs ? 'Plataforma del Mando' : 'Controller Platform');
-  setT('#touchpad-share-row .pos-label', isEs ? 'Mapear botón Back a Clic del Touchpad (PS4 / PS5)' : 'Map Back button to Touchpad Click (PS4 / PS5)');
+  setT('#touchpad-share-row .pos-label', isEs ? 'Mapear botón Back a Click del Touchpad (PS4 / PS5)' : 'Map Back button to Touchpad Click (PS4 / PS5)');
   setT('#rumble-row .pos-label', isEs ? 'Vibración' : 'Rumble');
   setT('#language-row .pos-label', isEs ? 'Idioma' : 'Language');
   setAll('.lbl-move-mode', isEs ? 'Modo de Movimiento' : 'Movement Mode');
@@ -1033,9 +1033,9 @@ function applyLanguage(lang){
   setAll('.lbl-move-haptics', isEs ? 'Hápticos de Movimiento' : 'Movement Haptics');
   setAll('.lbl-trigger-mode', isEs ? 'Modo de Gatillo' : 'Trigger Mode');
   setAll('.lbl-full-press', isEs ? 'Punto de Pulsación Completa' : 'Full-Press Point');
-  setAll('.lbl-click-feel', isEs ? 'Sensación de Clic' : 'Click Feel');
+  setAll('.lbl-click-feel', isEs ? 'Sensación de Click' : 'Click Feel');
   setAll('.lbl-deadzone', isEs ? 'Zona Muerta' : 'Deadzone');
-  setAll('.pad-note', isEs ? 'Presiona la parte exterior del pad para una dirección, o el centro para el clic.' : 'Press the outer part of the pad for a direction, or the middle for the trackpad click.');
+  setAll('.pad-note', isEs ? 'Presiona la parte exterior del pad para una dirección, o el centro para el click de trackpad.' : 'Press the outer part of the pad for a direction, or the middle for the trackpad click.');
 
   // Trigger meters help and reset
   var meterHelpHTML = isEs
@@ -1715,15 +1715,15 @@ function renderRow(def){
   var rightHTML;
   if(isL){
     rightHTML='<div class="listen-right">'+
-      '<span class="listen-pill"><span class="pulse-dot"></span>Press a button, key, or mouse button...</span>'+
-      '<button class="btn-row-reset" onclick="resetRow(\''+def.id+'\')">Reset</button>'+
+      '<span class="listen-pill"><span class="pulse-dot"></span>'+(isEs ? 'Presiona un botón, tecla o click...' : 'Press a button, key, or mouse button...')+'</span>'+
+      '<button class="btn-row-reset" onclick="resetRow(\''+def.id+'\')">'+(isEs ? 'Restablecer' : 'Reset')+'</button>'+
       '<button class="btn-cancel" onclick="cancelListening()">&#10005;</button>'+
       '</div>';
   } else {
     rightHTML='<div class="row-right">'+
       chipHTML(tgt,'chip-lg')+
       '<span class="input-label">'+tgt.label+'</span>'+
-      '<button class="btn-rebind" onclick="startListening(\''+def.id+'\')">Rebind</button>'+
+      '<button class="btn-rebind" onclick="startListening(\''+def.id+'\')">'+(isEs ? 'Reasignar' : 'Rebind')+'</button>'+
       '</div>';
   }
   var pickerHTML='';
@@ -1743,21 +1743,24 @@ function renderRow(def){
         'onclick="toggleMod('+m.bit+')">'+m.label+'</button>';
     }).join('');
     pickerHTML='<div class="picker">'+
-      '<div class="picker-label">HOLD WITH THE KEY(S)</div>'+
+      '<div class="picker-label">'+(isEs ? 'MANTENER CON LA(S) TECLA(S)' : 'HOLD WITH THE KEY(S)')+'</div>'+
       '<div class="picker-row" style="margin-top:9px;">'+modPills+'</div>'+
       (sasWarning
-        ? '<div class="mod-note">Windows reserves Ctrl + Alt + Delete for itself &#8212; '
-          + 'no application can send it, so it cannot be bound here.</div>'
-        : '<div class="mod-note">Pick modifiers, then press the key.</div>')+
-      '<div class="picker-label" style="margin-top:14px;">OR PICK MANUALLY</div>'+
+        ? (isEs ? '<div class="mod-note">Windows reserva Ctrl + Alt + Supr para el sistema &#8212; ninguna aplicación puede enviarlo.</div>'
+                : '<div class="mod-note">Windows reserves Ctrl + Alt + Delete for itself &#8212; no application can send it, so it cannot be bound here.</div>')
+        : (isEs ? '<div class="mod-note">Elige modificadores, luego presiona la tecla.</div>'
+                : '<div class="mod-note">Pick modifiers, then press the key.</div>'))+
+      '<div class="picker-label" style="margin-top:14px;">'+(isEs ? 'O SELECCIONAR MANUALMENTE' : 'OR PICK MANUALLY')+'</div>'+
       '<div class="picker-rows">'+pickerRows+'</div></div>';
   }
+  var posTag = (isEs && def.posTagEs) ? def.posTagEs : def.posTag;
+  var posLabel = (isEs && def.posLabelEs) ? def.posLabelEs : def.posLabel;
   el.innerHTML='<div class="row-top">'+
     '<div class="badge">'+
       '<span class="badge-id">'+(def.badge||def.id)+'</span>'+
-      '<span class="badge-pos">'+def.posTag+'</span>'+
+      '<span class="badge-pos">'+posTag+'</span>'+
     '</div>'+
-    '<span class="pos-label">'+def.posLabel+'</span>'+
+    '<span class="pos-label">'+posLabel+'</span>'+
     '<div class="connector"></div>'+
     rightHTML+
     '</div>'+pickerHTML;

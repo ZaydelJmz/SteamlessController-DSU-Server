@@ -5,11 +5,11 @@
 [![Hardware](https://img.shields.io/badge/Hardware-Steam%20Controller%202-purple?style=flat-square)](https://github.com/ZaydelJmz/SteamlessController-DSU-Server)
 [![License](https://img.shields.io/badge/License-GPLv3-green?style=flat-square)](LICENSE)
 
-> **Notice:** This project is an enhanced standalone fork based on the original [SteamlessController](https://github.com/ddeverill/SteamlessController) by **ddeverill**, extending it for the **Steam Controller 2** on Windows with an integrated Cemuhook DSU motion server, Nintendo Switch (Pro Controller) & PlayStation 5 (DualSense) emulation via USBIP, streamlined platform switcher, and advanced haptic controls.
+> **Notice:** This project is an enhanced standalone fork based on the original [SteamlessController](https://github.com/ddeverill/SteamlessController) by **ddeverill**, extending it for the **Steam Controller 2** on Windows with an integrated DSU motion server, Nintendo Switch (Pro Controller) & PlayStation 5 (DualSense) emulation via USBIP, streamlined platform switcher, and advanced haptic controls.
 
 A standalone driver and input wrapper specifically tailored for the **Steam Controller 2** on Windows (10 and 11, 64-bit) that operates completely **without the Steam client running**.
 
-**SteamlessController DSU Server** unlocks full independence for your Steam Controller 2 on Windows, emulating standard and modern gamepads (**Xbox 360 (XInput Controller)**, **PlayStation 4 (DualShock 4)**, **PlayStation 5 (DualSense)**, and **Nintendo Switch (Pro Controller)**) alongside an **integrated Cemuhook DSU motion server** (`127.0.0.1:26760`) for next-gen gyro aiming in emulators and PC games.
+**SteamlessController DSU Server** unlocks full independence for your Steam Controller 2 on Windows, emulating standard and modern gamepads (**Xbox 360 (XInput Controller)**, **PlayStation 4 (DualShock 4)**, **PlayStation 5 (DualSense)**, and **Nintendo Switch (Pro Controller)**) alongside an **integrated DSU motion server** (`127.0.0.1:26760`) for next-gen gyro aiming in emulators and PC games.
 
 ---
 
@@ -34,13 +34,12 @@ A standalone driver and input wrapper specifically tailored for the **Steam Cont
   * **PlayStation 5 (DualSense)** (via VIIPER + USBIP): 33-byte native report with dual-point touchpad, gyro/accel motion, and adaptive trigger feedback.
   * **Nintendo Switch (Pro Controller)** (via VIIPER + USBIP): 24-byte report with 0..4095 analog stick resolution, real-time battery reporting, system `Capture` & `Home` buttons, and native 6-axis gyro.
 
-* 🌐 **Built-in Cemuhook DSU Motion Server (`127.0.0.1:26760`)**
+* 🌐 **Built-in DSU Motion Server (`127.0.0.1:26760`)**
   * Direct 6-axis IMU UDP motion streaming for gyro aiming in emulators (**Ryujinx, Yuzu, Cemu, Dolphin, PCSX2, RPCS3, Citra**).
   * No external bridge apps (such as BetterJoy or JoyShockMapper) required.
 
-* 🌐 **Built-in Language Selector (English / Español / Auto)**
-  * Switch seamlessly between English and Spanish directly from the tray panel or the Customize Controls window.
-  * Includes automatic language detection matching Windows system display preferences.
+* 🌐 **Built-in Language Selector (English / Español)**
+  * Switch seamlessly between English (default) and Spanish directly from the tray panel or the Customize Controls window.
 
 * 📳 **Advanced Haptics & Trackpad Movement Controls**
   * **Movement Haptics** toggle in Customize Controls to silence continuous trackpad gliding buzz while preserving crisp tactile click pulses.
@@ -129,11 +128,11 @@ This project is licensed under the **GNU General Public License v3.0 (GPLv3)** �
 
 ## SteamlessController DSU Server 🎮
 
-> **Aviso:** Este proyecto es un fork independiente mejorado basado en el [SteamlessController](https://github.com/ddeverill/SteamlessController) original de **ddeverill**, ampliándolo para el **Steam Controller 2** en Windows con un servidor de movimiento Cemuhook DSU integrado, emulación de Nintendo Switch (Pro Controller) y PlayStation 5 (DualSense) vía USBIP, selector de plataformas optimizado y controles hápticos avanzados.
+> **Aviso:** Este proyecto es un fork independiente mejorado basado en el [SteamlessController](https://github.com/ddeverill/SteamlessController) original de **ddeverill**, ampliándolo para el **Steam Controller 2** en Windows con un servidor de movimiento DSU integrado, emulación de Nintendo Switch (Pro Controller) y PlayStation 5 (DualSense) vía USBIP, selector de plataformas optimizado y controles hápticos avanzados.
 
 Controlador y wrapper de entrada independiente diseñado específicamente para el **Steam Controller 2** en Windows (10 y 11, 64 bits) que funciona completamente **sin necesidad del cliente de Steam en segundo plano**.
 
-**SteamlessController DSU Server** desbloquea la independencia total de tu Steam Controller 2 en Windows, emulando mandos estándar y modernos (**Xbox 360 (XInput Controller)**, **PlayStation 4 (DualShock 4)**, **PlayStation 5 (DualSense)** y **Nintendo Switch (Pro Controller)**) junto a un **servidor de movimiento Cemuhook DSU integrado** (`127.0.0.1:26760`) para apuntado por giroscopio de última generación en emuladores y juegos de PC.
+**SteamlessController DSU Server** desbloquea la independencia total de tu Steam Controller 2 en Windows, emulando mandos estándar y modernos (**Xbox 360 (XInput Controller)**, **PlayStation 4 (DualShock 4)**, **PlayStation 5 (DualSense)** y **Nintendo Switch (Pro Controller)**) junto a un **servidor de movimiento DSU integrado** (`127.0.0.1:26760`) para apuntado por giroscopio de última generación en emuladores y juegos de PC.
 
 ---
 
@@ -158,13 +157,12 @@ Controlador y wrapper de entrada independiente diseñado específicamente para e
   * **PlayStation 5 (DualSense)** (vía VIIPER + USBIP): Reporte nativo de 33 bytes con panel táctil de doble punto, movimiento giroscopio/acelerómetro y respuesta háptica en gatillos adaptativos.
   * **Nintendo Switch (Pro Controller)** (vía VIIPER + USBIP): Reporte nativo de 24 bytes con resolución analógica de 0..4095, reporte de batería en tiempo real, botones de sistema `Captura` y `Home`, y giroscopio nativo de 6 ejes.
 
-* 🌐 **Servidor de Movimiento Cemuhook DSU Integrado (`127.0.0.1:26760`)**
+* 🌐 **Servidor de Movimiento DSU Integrado (`127.0.0.1:26760`)**
   * Transmisión directa por UDP de movimiento IMU de 6 ejes para apuntar con giroscopio en emuladores (**Ryujinx, Yuzu, Cemu, Dolphin, PCSX2, RPCS3, Citra**).
   * Sin necesidad de aplicaciones puente externas (como BetterJoy o JoyShockMapper).
 
-* 🌐 **Selector de Idioma Integrado (Español / English / Auto)**
-  * Alterna de forma fluida e instantánea entre español e inglés directamente desde el panel de la bandeja o la ventana de Personalizar Controles.
-  * Incluye detección automática basada en las preferencias de idioma de Windows.
+* 🌐 **Selector de Idioma Integrado (English / Español)**
+  * Alterna de forma fluida e instantánea entre inglés (por defecto) y español directamente desde el panel de la bandeja o la ventana de Personalizar Controles.
 
 * 📳 **Controles Hápticos Avanzados y Movimiento de Trackpad**
   * Interruptor **Movement Haptics** en Customize Controls para silenciar el zumbido continuo al deslizar el dedo por el trackpad, preservando pulsos táctiles nítidos al hacer clic.
