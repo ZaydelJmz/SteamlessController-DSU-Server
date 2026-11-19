@@ -2,6 +2,7 @@
 #include <Windows.h>
 #include <cfgmgr32.h>
 #include <string>
+#include <vector>
 
 namespace DeviceRestart {
 
@@ -111,6 +112,11 @@ bool ReadCycleStatus(CycleResult& result);
 // the disable; the record is flushed to disk before this returns.
 bool ArmPendingDisable(const std::wstring& instanceId,
                        const std::wstring& parentInstanceId);
+bool ArmPendingDisables(const std::vector<std::wstring>& instanceIds);
+
+// Reconcile-only request flag to prevent unnecessary cycling of active devices.
+bool RequestReconcileOnly();
+bool TakeReconcileOnlyRequest();
 
 // Drop the record. Call only once the devnode is confirmed enabled again.
 bool DisarmPendingDisable();
@@ -135,5 +141,6 @@ int ReconcilePendingDisables(std::wstring* report = nullptr);
 // so the user has every reason to believe it is fine and we are broken.
 // Read-only and safe unelevated.
 std::wstring FindDisabledControllerNode();
+std::vector<std::wstring> FindAllDisabledControllerNodes();
 
 }

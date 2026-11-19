@@ -376,5 +376,6 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR cmdLine, int) {
     if (cmdLine && wcsstr(cmdLine, L"--unregister"))   return UnregisterTask();
     if (cmdLine && wcsstr(cmdLine, L"--find-holders")) return FindHoldersOnly();
     if (cmdLine && wcsstr(cmdLine, L"--reconcile"))    return ReconcilePending();
+    if (DeviceRestart::TakeReconcileOnlyRequest())      return ReconcilePending();
     return CycleDevices();
 }

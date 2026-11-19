@@ -30,7 +30,6 @@ TrayPanel::Model ModelFor(const char* state) {
     m.controlOn = true;
     m.battery = 82;
     m.startup = true;
-    m.enableOnLaunch = true;
     m.notifications = true;
     if (!strcmp(state, "manual-off")) {
         m.controlOn = false;
@@ -38,7 +37,6 @@ TrayPanel::Model ModelFor(const char* state) {
         m.manual = false;
         m.mode = 1;
         m.battery = 64;
-        m.enableOnLaunch = false;
     } else if (!strcmp(state, "nocontroller")) {
         m.connected = false;
         m.controlOn = false;
@@ -114,7 +112,7 @@ int SelfTest() {
     std::printf("TrayPanel self-test\n");
     TrayPanel::Model model;
     model.connected = true; model.manual = true; model.controlOn = false;
-    model.startup = true; model.enableOnLaunch = true; model.notifications = true;
+    model.startup = true; model.notifications = true;
 
     std::vector<TrayPanel::Action> seen;
     bool openInsideHandler = true;
@@ -482,7 +480,7 @@ int AccessibilityTest() {
     CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
     TrayPanel::Model model;
     model.connected = true; model.manual = true; model.controlOn = true; model.battery = 82;
-    model.startup = true; model.enableOnLaunch = true; model.notifications = true;
+    model.startup = true; model.notifications = true;
 
     std::vector<TrayPanel::Action> seen;
     TrayPanel panel;

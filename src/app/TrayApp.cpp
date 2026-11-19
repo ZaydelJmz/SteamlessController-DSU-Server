@@ -1382,16 +1382,18 @@ bool TrayApp::RunPendingRecovery() {
         return true;
     }
 
-    // Enabling a devnode needs elevation, so this has to go through the helper.
-    // Its scheduled task takes no arguments — schtasks cannot pass any — so it
-    // runs the ordinary entry point, which reconciles first and then cycles.
-    // Both are wanted here: the device comes back, and it comes back presented
-    // as a fresh arrival that Steam and we can race for as usual.
-    //
-    // Asynchronous: schtasks returns once the task has been started, not once
-    // the helper has finished, so the device reappears on its own a moment later
-    // as a normal arrival rather than before this returns.
-    return RestartControllerDevices();
+    // Signal the helper to reconcile disabled devnodes without cycling active devices.
+    DeviceRestart::RequestReconcileOnly();
+
+    std::wstring run = L"schtasks.exe /Run /TN \"";
+    run += CYCLE_TASK_NAME;
+    run += L"\"";
+    if (RunToolHidden(run)) return true;
+
+    if (EnsureCycleTaskRegistered() && RunToolHidden(std::move(run)))
+        return true;
+
+    return false;
 }
 
 // A silent log is ambiguous. Nothing is written while the app sits idle with
@@ -1433,65 +1435,40 @@ void TrayApp::WriteHeartbeat() {
                     m_wantControl ? 1 : 0);
 }
 
-// Undo a disable an earlier run committed to the registry but never reversed.
-// Cheap and silent in the normal case: with no pending record this is one
-// failed file open.
+// Undo a disable an earlier run committed to the registry or PnP.
+// Recovers silently without alarming the user with error balloons.
 void TrayApp::RecoverStrandedDevices() {
-    if (!DeviceRestart::HasPendingDisable()) {
-        // No record of our own, but the device can still be switched off — by
-        // Device Manager, by regedit, by pnputil, by a tool that hides HID
-        // devices. Not something to undo silently: it may well be deliberate.
-        // Naming it is the useful part, because from here it is otherwise
-        // indistinguishable from no controller being plugged in at all.
-        m_disabledDeviceNode = DeviceRestart::FindDisabledControllerNode();
-        if (!m_disabledDeviceNode.empty()) {
-            EventLog::Write("STARTUP: a controller devnode is disabled in Windows, so it "
-                            "publishes no interfaces and cannot be seen here or by Steam: "
-                            "%ls", m_disabledDeviceNode.c_str());
-            EventLog::Write("STARTUP: re-enable it from the tray menu, in Device Manager, "
-                            "or with: pnputil /enable-device \"%ls\"",
-                            m_disabledDeviceNode.c_str());
-            if (m_notificationsEnabled)
-                ShowAlertBalloon(L"Controller is disabled in Windows",
-                                 L"Windows has this controller's device switched off, so "
-                                 L"nothing can see it — including Steam. Click here to "
-                                 L"re-enable it.",
-                                 BalloonAction::EnableDisabledDevice);
+    const auto disabledNodes = DeviceRestart::FindAllDisabledControllerNodes();
+    const bool hasPending = DeviceRestart::HasPendingDisable();
+
+    if (!disabledNodes.empty() || hasPending) {
+        EventLog::Write("STARTUP: %zu controller devnode(s) left disabled (hasPending=%d) — recovering silently",
+                        disabledNodes.size(), hasPending ? 1 : 0);
+        if (!disabledNodes.empty()) {
+            DeviceRestart::ArmPendingDisables(disabledNodes);
         }
-        return;
+        if (!RunPendingRecovery()) {
+            EventLog::Write("STARTUP: elevated auto-recovery could not be run");
+            if (!m_controller->IsConnected() && !disabledNodes.empty()) {
+                m_disabledDeviceNode = disabledNodes.front();
+            }
+        }
     }
-
-    EventLog::Write("RECOVER: a previous run was interrupted mid-cycle and left the "
-                    "controller's devnode disabled — putting it back");
-
-    if (!RunPendingRecovery())
-        EventLog::Write("RECOVER: the elevated helper could not be run — the controller "
-                        "stays disabled until it is re-enabled in Device Manager "
-                        "(or: pnputil /enable-device \"<instance id>\")");
 }
 
 void TrayApp::EnableDisabledControllerDevice() {
-    // Re-resolve rather than trusting what the menu or balloon was built from:
-    // minutes may have passed, and the user may already have fixed it by hand.
-    const std::wstring node = DeviceRestart::FindDisabledControllerNode();
-    m_disabledDeviceNode = node;
-    if (node.empty()) {
-        EventLog::Write("USER: asked to re-enable the controller device, but no controller "
-                        "devnode is disabled");
+    const auto nodes = DeviceRestart::FindAllDisabledControllerNodes();
+    if (nodes.empty()) {
+        EventLog::Write("USER: asked to re-enable controller devnodes, but none are disabled");
+        m_disabledDeviceNode.clear();
         return;
     }
 
-    EventLog::Write("USER: re-enabling disabled controller devnode %ls", node.c_str());
-
-    // Hand it to the same mechanism that repairs an interrupted cycle rather
-    // than growing a second way to switch a devnode on: recorded as pending, it
-    // is undone by exactly the path that has already been exercised. The parent
-    // is left blank — this node is known to be the disabled one, so there is
-    // nothing to guess at.
-    DeviceRestart::ArmPendingDisable(node, L"");
+    EventLog::Write("USER: re-enabling %zu disabled controller devnode(s)", nodes.size());
+    DeviceRestart::ArmPendingDisables(nodes);
 
     if (!RunPendingRecovery()) {
-        EventLog::Write("USER: could not run the elevated helper to re-enable the device");
+        EventLog::Write("USER: could not run elevated helper to re-enable devices");
         if (m_notificationsEnabled)
             ShowAlertBalloon(L"Could not re-enable the controller",
                              L"Windows would not let the device be switched back on from "
@@ -2219,12 +2196,12 @@ void TrayApp::ShowContextMenu() {
     if (!m_cycleInFlight)
         m_controller->OnDeviceChange();
 
-    // Only shown when it applies, and first when it does: with the devnode
-    // switched off nothing else on the panel can do anything useful, and every
-    // other control will be reporting "no controller detected" for a reason the
-    // user has no way to guess at. Re-resolved on each open so it disappears
-    // once the device is back, however it got there.
-    m_disabledDeviceNode = DeviceRestart::FindDisabledControllerNode();
+    // Only shown when it applies: if the controller is actively connected, it cannot
+    // be considered disabled. Otherwise re-resolve so it disappears once back.
+    if (m_controller->IsConnected())
+        m_disabledDeviceNode.clear();
+    else
+        m_disabledDeviceNode = DeviceRestart::FindDisabledControllerNode();
 
     POINT pt;
     GetCursorPos(&pt);

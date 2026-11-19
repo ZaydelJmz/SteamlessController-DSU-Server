@@ -1,6 +1,7 @@
 #include "DeviceRestart.h"
 #include <SetupAPI.h>
 #include <cfgmgr32.h>
+#include <algorithm>
 #include <cstdio>
 #include <io.h>
 #include <shlwapi.h>
@@ -442,6 +443,55 @@ bool ArmPendingDisable(const std::wstring& instanceId,
     return true;
 }
 
+bool ArmPendingDisables(const std::vector<std::wstring>& instanceIds) {
+    const std::wstring path = PendingPath();
+    if (path.empty() || instanceIds.empty()) return false;
+
+    FILE* f = nullptr;
+    if (_wfopen_s(&f, path.c_str(), L"w, ccs=UTF-8") != 0 || !f) return false;
+
+    for (const auto& id : instanceIds) {
+        if (!id.empty())
+            fwprintf(f, L"%s\n", id.c_str());
+    }
+
+    fflush(f);
+    _commit(_fileno(f));
+    fclose(f);
+    return true;
+}
+
+static std::wstring ReconcileRequestPath() {
+    wchar_t local[MAX_PATH];
+    if (!GetEnvironmentVariableW(L"LOCALAPPDATA", local, MAX_PATH)) return L"";
+    const std::wstring dir = std::wstring(local) + L"\\SteamlessController";
+    CreateDirectoryW(dir.c_str(), nullptr);
+    return dir + L"\\reconcile.request";
+}
+
+bool RequestReconcileOnly() {
+    const std::wstring path = ReconcileRequestPath();
+    if (path.empty()) return false;
+    FILE* f = nullptr;
+    if (_wfopen_s(&f, path.c_str(), L"w") == 0 && f) {
+        fputs("1\n", f);
+        fclose(f);
+        return true;
+    }
+    return false;
+}
+
+bool TakeReconcileOnlyRequest() {
+    const std::wstring path = ReconcileRequestPath();
+    if (path.empty()) return false;
+    const DWORD attr = GetFileAttributesW(path.c_str());
+    if (attr != INVALID_FILE_ATTRIBUTES) {
+        DeleteFileW(path.c_str());
+        return true;
+    }
+    return false;
+}
+
 bool DisarmPendingDisable() {
     const std::wstring path = PendingPath();
     if (path.empty()) return false;
@@ -513,33 +563,8 @@ static bool EnableByInstanceId(const std::wstring& id, bool& wasDisabled) {
     return enabled;
 }
 
-int ReconcilePendingDisables(std::wstring* report) {
-    const std::vector<std::wstring> ids = ReadPendingIds();
-    if (ids.empty()) return 0;
-
-    int recovered = 0;
-    std::wstring text;
-    for (const auto& id : ids) {
-        bool wasDisabled = false;
-        const bool ok = EnableByInstanceId(id, wasDisabled);
-        if (!wasDisabled) continue;  // came back on its own, or never went down
-
-        if (ok) ++recovered;
-        if (!text.empty()) text += L"; ";
-        text += id + (ok ? L" -> re-enabled" : L" -> STILL DISABLED");
-    }
-
-    // Drop the record either way. A node that could not be re-enabled here will
-    // not be re-enabled by trying again on the next launch, and keeping the
-    // file would turn one stranded device into a permanent startup ritual —
-    // the failure is surfaced through the log instead.
-    DisarmPendingDisable();
-
-    if (report) *report = text;
-    return recovered;
-}
-
-std::wstring FindDisabledControllerNode() {
+std::vector<std::wstring> FindAllDisabledControllerNodes() {
+    std::vector<std::wstring> result;
     // Every enumerator the controller can appear under. HID matters most and is
     // the easiest to forget: a cycle disables the HID collection child, so that
     // is the node most likely to be found switched off — its USB parent sits
@@ -566,10 +591,48 @@ std::wstring FindDisabledControllerNode() {
             if (CM_Locate_DevNodeW(&devInst, const_cast<DEVINSTID_W>(id),
                                    CM_LOCATE_DEVNODE_PHANTOM) != CR_SUCCESS)
                 continue;
-            if (IsDevNodeDisabled(devInst)) return id;
+            if (IsDevNodeDisabled(devInst)) {
+                result.emplace_back(id);
+            }
         }
     }
-    return L"";
+    return result;
+}
+
+std::wstring FindDisabledControllerNode() {
+    const auto all = FindAllDisabledControllerNodes();
+    return all.empty() ? L"" : all.front();
+}
+
+int ReconcilePendingDisables(std::wstring* report) {
+    std::vector<std::wstring> ids = ReadPendingIds();
+    for (const auto& disabledId : FindAllDisabledControllerNodes()) {
+        if (std::find(ids.begin(), ids.end(), disabledId) == ids.end()) {
+            ids.push_back(disabledId);
+        }
+    }
+    if (ids.empty()) return 0;
+
+    int recovered = 0;
+    std::wstring text;
+    for (const auto& id : ids) {
+        bool wasDisabled = false;
+        const bool ok = EnableByInstanceId(id, wasDisabled);
+        if (!wasDisabled) continue;  // came back on its own, or never went down
+
+        if (ok) ++recovered;
+        if (!text.empty()) text += L"; ";
+        text += id + (ok ? L" -> re-enabled" : L" -> STILL DISABLED");
+    }
+
+    // Drop the record either way. A node that could not be re-enabled here will
+    // not be re-enabled by trying again on the next launch, and keeping the
+    // file would turn one stranded device into a permanent startup ritual —
+    // the failure is surfaced through the log instead.
+    DisarmPendingDisable();
+
+    if (report) *report = text;
+    return recovered;
 }
 
 }
