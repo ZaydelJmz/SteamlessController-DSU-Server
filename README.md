@@ -5,11 +5,11 @@
 [![Hardware](https://img.shields.io/badge/Hardware-Steam%20Controller%202-purple?style=flat-square)](https://github.com/ZaydelJmz/SteamlessController-DSU-Server)
 [![License](https://img.shields.io/badge/License-GPLv3-green?style=flat-square)](LICENSE)
 
-> **Notice:** This project is an enhanced standalone fork based on the original [SteamlessController](https://github.com/ddeverill/SteamlessController) by **ddeverill**, extending it for the **Steam Controller 2** on Windows with an integrated DSU motion server, Nintendo Switch (Pro Controller) & PlayStation 5 (DualSense) emulation via USBIP, streamlined platform switcher, and advanced haptic controls.
+> **Notice:** This project is an enhanced standalone fork based on the original [SteamlessController](https://github.com/ddeverill/SteamlessController) by **ddeverill**, extending it for the **Steam Controller 2** on Windows with an integrated DSU motion server (UDP server to stream the controller's gyroscope to emulators), Nintendo Switch (Pro Controller) & PlayStation 5 (DualSense) emulation via USBIP, streamlined platform switcher, and advanced haptic controls.
 
 A standalone driver and input wrapper specifically tailored for the **Steam Controller 2** on Windows (10 and 11, 64-bit) that operates completely **without the Steam client running**.
 
-**SteamlessController DSU Server** unlocks full independence for your Steam Controller 2 on Windows, emulating standard and modern gamepads (**Xbox 360 (XInput Controller)**, **PlayStation 4 (DualShock 4)**, **PlayStation 5 (DualSense)**, and **Nintendo Switch (Pro Controller)**) alongside an **integrated DSU motion server** (`127.0.0.1:26760`) for next-gen gyro aiming in emulators and PC games.
+**SteamlessController DSU Server** unlocks full independence for your Steam Controller 2 on Windows, emulating standard and modern gamepads (**Xbox 360 (XInput Controller)**, **PlayStation 4 (DualShock 4)**, **PlayStation 5 (DualSense)**, and **Nintendo Switch (Pro Controller)**) alongside an **integrated DSU motion server** (`127.0.0.1:26760`, UDP motion server that enables gyroscope aiming in emulators) for next-gen gyro aiming in emulators and PC games.
 
 ---
 
@@ -21,11 +21,7 @@ A standalone driver and input wrapper specifically tailored for the **Steam Cont
 
 * 🎛️ **Quick Target Platform Selector**
   * Located directly on the system tray panel.
-  * Features a **clean, full-width 4-button segmented bar** (`[ Xbox ] [ PS4 ] [ PS5 ] [ Switch ]`) with dedicated color accents:
-    * **Xbox**: Emerald green (`#22c55e`)
-    * **PS4**: Classic PlayStation blue (`#38bdf8`)
-    * **PS5**: DualSense electric blue (`#60a5fa`)
-    * **Switch**: Neon red (`#f43f5e`)
+  * Features a **clean, full-width 4-button segmented bar** (`[ Xbox ] [ PS4 ] [ PS5 ] [ Switch ]`) with dedicated color accents.
   * **Seamless 1000 ms Cooldown Switch**: Clean teardown and rebuild pumping Win32 messages with visual amber feedback (`Switching platform...`), ensuring Windows PnP assigns the new virtual pad strictly to **Player 1 / Gamepad 1 (Slot 0)**.
 
 * 🕹️ **Four Emulated Controller Modes**
@@ -34,8 +30,9 @@ A standalone driver and input wrapper specifically tailored for the **Steam Cont
   * **PlayStation 5 (DualSense)** (via VIIPER + USBIP): 33-byte native report with dual-point touchpad, gyro/accel motion, and adaptive trigger feedback.
   * **Nintendo Switch (Pro Controller)** (via VIIPER + USBIP): 24-byte report with 0..4095 analog stick resolution, real-time battery reporting, system `Capture` & `Home` buttons, and native 6-axis gyro.
 
-* 🌐 **Built-in DSU Motion Server (`127.0.0.1:26760`)**
+* 🌐 **Built-in DSU Motion Server (`127.0.0.1:26760`)** *(Motion server to enable gyroscope aiming in emulators for controllers that lack native gyro)*
   * Direct 6-axis IMU UDP motion streaming for gyro aiming in emulators (**Ryujinx, Yuzu, Cemu, Dolphin, PCSX2, RPCS3, Citra**).
+  * Allows motion aiming even when emulating controllers that natively lack motion support in Windows (such as Xbox 360 / XInput).
   * No external bridge apps (such as BetterJoy or JoyShockMapper) required.
 
 * 🌐 **Built-in Language Selector (English / Español)**
@@ -128,7 +125,7 @@ This project is licensed under the **GNU General Public License v3.0 (GPLv3)** �
 
 ## SteamlessController DSU Server 🎮
 
-> **Aviso:** Este proyecto es un fork independiente mejorado basado en el [SteamlessController](https://github.com/ddeverill/SteamlessController) original de **ddeverill**, ampliándolo para el **Steam Controller 2** en Windows con un servidor de movimiento DSU integrado, emulación de Nintendo Switch (Pro Controller) y PlayStation 5 (DualSense) vía USBIP, selector de plataformas optimizado y controles hápticos avanzados.
+> **Aviso:** Este proyecto es un fork independiente mejorado basado en el [SteamlessController](https://github.com/ddeverill/SteamlessController) original de **ddeverill**, ampliándolo para el **Steam Controller 2** en Windows con un servidor de movimiento DSU integrado (servidor UDP para transmitir el giroscopio del mando a emuladores), emulación de Nintendo Switch (Pro Controller) y PlayStation 5 (DualSense) vía USBIP, selector de plataformas optimizado y controles hápticos avanzados.
 
 Controlador y wrapper de entrada independiente diseñado específicamente para el **Steam Controller 2** en Windows (10 y 11, 64 bits) que funciona completamente **sin necesidad del cliente de Steam en segundo plano**.
 
@@ -144,11 +141,7 @@ Controlador y wrapper de entrada independiente diseñado específicamente para e
 
 * 🎛️ **Selector Rápido de Plataforma**
   * Ubicado directamente en el panel de la bandeja del sistema.
-  * Presenta una **barra segmentada de 4 botones de ancho completo** (`[ Xbox ] [ PS4 ] [ PS5 ] [ Switch ]`) con acentos de color dedicados:
-    * **Xbox**: Verde esmeralda (`#22c55e`)
-    * **PS4**: Azul clásico PlayStation (`#38bdf8`)
-    * **PS5**: Azul eléctrico DualSense (`#60a5fa`)
-    * **Switch**: Rojo neón (`#f43f5e`)
+  * Presenta una **barra segmentada de 4 botones de ancho completo** (`[ Xbox ] [ PS4 ] [ PS5 ] [ Switch ]`) con acentos de color dedicados.
   * **Transición fluida con Cooldown de 1000 ms**: Desconexión y recreación limpia procesando mensajes Win32 con indicador visual ámbar (`Switching platform...`), garantizando que Windows PnP asigne siempre el nuevo mando virtual estrictamente al **Jugador 1 / Mando 1 (Slot 0)**.
 
 * 🕹️ **Cuatro Modos de Mando Emulados**
@@ -157,8 +150,9 @@ Controlador y wrapper de entrada independiente diseñado específicamente para e
   * **PlayStation 5 (DualSense)** (vía VIIPER + USBIP): Reporte nativo de 33 bytes con panel táctil de doble punto, movimiento giroscopio/acelerómetro y respuesta háptica en gatillos adaptativos.
   * **Nintendo Switch (Pro Controller)** (vía VIIPER + USBIP): Reporte nativo de 24 bytes con resolución analógica de 0..4095, reporte de batería en tiempo real, botones de sistema `Captura` y `Home`, y giroscopio nativo de 6 ejes.
 
-* 🌐 **Servidor de Movimiento DSU Integrado (`127.0.0.1:26760`)**
+* 🌐 **Servidor de Movimiento DSU Integrado (`127.0.0.1:26760`)** *(Servidor para habilitar giroscopio en emuladores incluso en modos de mando que no lo soportan de forma nativa)*
   * Transmisión directa por UDP de movimiento IMU de 6 ejes para apuntar con giroscopio en emuladores (**Ryujinx, Yuzu, Cemu, Dolphin, PCSX2, RPCS3, Citra**).
+  * Permite apuntar con giroscopio incluso al emular mandos que en Windows no soportan movimiento de forma nativa (como Xbox 360 / XInput).
   * Sin necesidad de aplicaciones puente externas (como BetterJoy o JoyShockMapper).
 
 * 🌐 **Selector de Idioma Integrado (English / Español)**
