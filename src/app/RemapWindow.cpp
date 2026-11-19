@@ -752,10 +752,10 @@ var HAPTIC_OPTIONS = [
   {id:'off', label:'Disabled'},
 ];
 var PLATFORM_OPTIONS = [
-  {id:'xbox',   label:'Xbox 360 Controller'},
+  {id:'xbox',   label:'Xbox 360 (XInput Controller)'},
   {id:'ps',     label:'PlayStation 4 (DualShock 4)'},
   {id:'ps5',    label:'PlayStation 5 (DualSense)'},
-  {id:'switch', label:'Nintendo Switch Pro'},
+  {id:'switch', label:'Nintendo Switch (Pro Controller)'},
 ];
 var listening = null;
 // Modifier bits, matching BackButtonBinding::Modifier.
@@ -2362,7 +2362,7 @@ function railSummaries(){
   var bound=['L4','L5','R4','R5','QAM'].filter(function(id){return bindings[id]&&bindings[id]!=='none';}).length;
   var ls=sticks.LS?sticks.LS.mode:'default', rs=sticks.RS?sticks.RS.mode:'default';
   return {
-    general:(platform==='switch'?'Nintendo Switch Pro':platform==='ps5'?'PlayStation 5':platform==='ps'?'PlayStation 4':'Xbox 360')+' \u00b7 Rumble '+rumbleLabel(rumble),
+    general:(platform==='switch'?'Nintendo Switch':platform==='ps5'?'PlayStation 5':platform==='ps'?'PlayStation 4':'Xbox 360')+' \u00b7 Rumble '+rumbleLabel(rumble),
     lpad:PAD_MODE_SHORT[modes.LPAD]||'',
     rpad:PAD_MODE_SHORT[modes.RPAD]||'',
     triggers:dual.length===2?'Dual Stage on both':dual.length===1?'Dual Stage on '+(dual[0]==='LT'?'L2':'R2'):'Analog',

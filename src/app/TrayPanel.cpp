@@ -161,7 +161,6 @@ struct Layout {
 
     // Platform selection (first below div1)
     D2D1_RECT_F platLabel{};
-    D2D1_RECT_F platTile{};
     D2D1_RECT_F platTrack{};
     D2D1_RECT_F platSeg[4]{};
 
@@ -290,10 +289,10 @@ struct TrayPanel::Impl : PanelAccessibility::Host {
         // header shows under the title.
         control(Action::ToggleControl, Kind::Toggle, L"Steamless Mode", StatusText(m), m.controlOn, -1, 0, 0);
 
-        control(Action::PlatformXbox, Kind::Radio, L"Xbox 360", L"", m.platform == ControllerPlatform::Xbox, -1, 1, 4);
+        control(Action::PlatformXbox, Kind::Radio, L"Xbox", L"", m.platform == ControllerPlatform::Xbox, -1, 1, 4);
         control(Action::PlatformPS, Kind::Radio, L"PS4", L"", m.platform == ControllerPlatform::PlayStation, -1, 2, 4);
         control(Action::PlatformPS5, Kind::Radio, L"PS5", L"", m.platform == ControllerPlatform::DualSense, -1, 3, 4);
-        control(Action::PlatformSwitch, Kind::Radio, L"Switch Pro", L"", m.platform == ControllerPlatform::Switch, -1, 4, 4);
+        control(Action::PlatformSwitch, Kind::Radio, L"Switch", L"", m.platform == ControllerPlatform::Switch, -1, 4, 4);
         control(Action::Customize, Kind::Button, L"Customize Controls",
                 L"Bindings, trackpads, triggers, sticks", false, -1, 0, 0);
         for (int i = 0; i < lay.rowCount; ++i)
@@ -544,108 +543,6 @@ struct TrayPanel::Impl : PanelAccessibility::Host {
         Fill(D2D1::RectF(x + 3.f, y + 6.f, x + 3.f + fill, y + 10.f), 0.6f, rgb);
     }
 
-    void DrawSelectedPlatformIcon(const D2D1_RECT_F& r, ControllerPlatform plat) {
-        const float cx = (r.left + r.right) * 0.5f;
-        const float cy = (r.top + r.bottom) * 0.5f;
-
-        UINT32 col = 0x22c55e; // Xbox green default
-        if (plat == ControllerPlatform::PlayStation) {
-            col = 0x38bdf8; // PS4 light blue
-        } else if (plat == ControllerPlatform::DualSense) {
-            col = 0x60a5fa; // PS5 electric blue
-        } else if (plat == ControllerPlatform::Switch) {
-            col = 0xf43f5e; // Switch red
-        }
-
-        // 38x38 Tile background with subtle platform-tinted glow
-        Fill(r, 10.f, col, 0.16f);
-        Outline(r, 10.f, col, 0.65f, 1.2f);
-
-        if (plat == ControllerPlatform::Xbox) {
-            // Official Xbox Sphere / Orb Logo
-            const float orbCy = cy - 4.f;
-            const float R = 11.5f;
-
-            // Sphere base with depth
-            Fill(D2D1::RectF(cx - R, orbCy - R, cx + R, orbCy + R), R, 0x0d3813);
-            Outline(D2D1::RectF(cx - R, orbCy - R, cx + R, orbCy + R), R, 0x22c55e, 0.85f, 1.4f);
-
-            // The iconic Xbox 3D carved "X"
-            Line(cx, orbCy, -7.5f, -7.5f, 7.5f, 7.5f, 0xffffff, 2.6f);
-            Line(cx, orbCy, -7.5f, 7.5f, 7.5f, -7.5f, 0xffffff, 2.6f);
-
-            // Carved top and bottom V-notches in dark background
-            Fill(D2D1::RectF(cx - 3.5f, orbCy - R, cx + 3.5f, orbCy - 2.5f), 1.0f, 0x0d3813);
-            Fill(D2D1::RectF(cx - 3.5f, orbCy + 2.5f, cx + 3.5f, orbCy + R), 1.0f, 0x0d3813);
-
-            // Green center glow core
-            Dot(cx, orbCy, 2.0f, 0x22c55e, 0.95f);
-
-            // Crisp "360" badge below
-            Text(L"360", D2D1::RectF(r.left, cy + 6.f, r.right, r.bottom - 1.f), 9.0f,
-                 DWRITE_FONT_WEIGHT_BOLD, 0x22c55e, 1.f, true, DWRITE_TEXT_ALIGNMENT_CENTER);
-
-        } else if (plat == ControllerPlatform::PlayStation) {
-            // Official PlayStation Monogram Logo (PS4)
-            const float psCy = cy - 4.f;
-
-            // 'P' vertical stem
-            Fill(D2D1::RectF(cx - 6.0f, psCy - 8.5f, cx - 3.2f, psCy + 3.0f), 0.5f, col);
-            // 'P' upper loop
-            Outline(D2D1::RectF(cx - 5.0f, psCy - 8.5f, cx + 2.0f, psCy - 1.5f), 3.0f, col, 1.0f, 2.4f);
-
-            // 'S' reclining perspective ribbons
-            Line(cx, psCy, -7.5f, 3.5f, 4.5f, 3.5f, col, 1.7f);
-            Line(cx, psCy, -5.5f, 6.2f, 7.0f, 6.2f, col, 1.7f);
-            Line(cx, psCy, -7.5f, 8.8f, 3.5f, 8.8f, col, 1.7f);
-
-            // "PS4" text badge below
-            Text(L"PS4", D2D1::RectF(r.left, cy + 6.f, r.right, r.bottom - 1.f), 9.0f,
-                 DWRITE_FONT_WEIGHT_BOLD, col, 1.f, true, DWRITE_TEXT_ALIGNMENT_CENTER);
-
-        } else if (plat == ControllerPlatform::DualSense) {
-            // Official PlayStation 5 Monogram Logo (DualSense White & Electric Blue)
-            const float psCy = cy - 4.f;
-
-            // 'P' vertical stem (White)
-            Fill(D2D1::RectF(cx - 6.0f, psCy - 8.5f, cx - 3.2f, psCy + 3.0f), 0.5f, 0xffffff);
-            // 'P' upper loop (White)
-            Outline(D2D1::RectF(cx - 5.0f, psCy - 8.5f, cx + 2.0f, psCy - 1.5f), 3.0f, 0xffffff, 1.0f, 2.4f);
-
-            // 'S' reclining perspective ribbons (Electric Blue)
-            Line(cx, psCy, -7.5f, 3.5f, 4.5f, 3.5f, col, 1.7f);
-            Line(cx, psCy, -5.5f, 6.2f, 7.0f, 6.2f, col, 1.7f);
-            Line(cx, psCy, -7.5f, 8.8f, 3.5f, 8.8f, col, 1.7f);
-
-            // "PS5" text badge below
-            Text(L"PS5", D2D1::RectF(r.left, cy + 6.f, r.right, r.bottom - 1.f), 9.0f,
-                 DWRITE_FONT_WEIGHT_BOLD, 0xffffff, 1.f, true, DWRITE_TEXT_ALIGNMENT_CENTER);
-
-        } else {
-            // Official Nintendo Switch Joy-Con Logo
-            const float swCy = cy - 4.f;
-            const float joyH = 17.f;
-            const float joyW = 7.5f;
-            const float gap = 2.5f;
-
-            // Left Joy-Con: Solid neon-red capsule with hollow circular stick cutout near top
-            const D2D1_RECT_F leftJoy = D2D1::RectF(cx - gap - joyW, swCy - joyH * 0.5f, cx - gap, swCy + joyH * 0.5f);
-            Fill(leftJoy, 3.8f, col, 1.0f);
-            // Hollow circular stick cutout
-            Dot(cx - gap - joyW * 0.5f, swCy - 3.5f, 1.8f, kBg, 1.0f);
-
-            // Right Joy-Con: Outlined neon-red capsule with solid stick near bottom
-            const D2D1_RECT_F rightJoy = D2D1::RectF(cx + gap, swCy - joyH * 0.5f, cx + gap + joyW, swCy + joyH * 0.5f);
-            Outline(rightJoy, 3.8f, col, 1.0f, 1.5f);
-            // Solid filled circular stick
-            Dot(cx + gap + joyW * 0.5f, swCy + 3.5f, 1.8f, col, 1.0f);
-
-            // "PRO" text badge below
-            Text(L"PRO", D2D1::RectF(r.left, cy + 6.f, r.right, r.bottom - 1.f), 9.0f,
-                 DWRITE_FONT_WEIGHT_BOLD, col, 1.f, true, DWRITE_TEXT_ALIGNMENT_CENTER);
-        }
-    }
-
     // ---- layout -----------------------------------------------------------
 
     void AddHit(const D2D1_RECT_F& r, Action a, bool enabled = true, float radius = 9.f) {
@@ -684,8 +581,7 @@ struct TrayPanel::Impl : PanelAccessibility::Host {
         lo.platLabel = D2D1::RectF(kPad, y, kWidth - kPad, y + 14.f);
         y += 18.f;
 
-        lo.platTile  = D2D1::RectF(kPad, y, kPad + 38.f, y + 38.f);
-        lo.platTrack = D2D1::RectF(kPad + 38.f + 8.f, y, kWidth - kPad, y + 38.f);
+        lo.platTrack = D2D1::RectF(kPad, y, kWidth - kPad, y + 36.f);
 
         const float pSegW = ((lo.platTrack.right - lo.platTrack.left) - 6.f - 9.f) / 4.f;
         static const Action platActs[4] = { Action::PlatformXbox, Action::PlatformPS, Action::PlatformPS5, Action::PlatformSwitch };
@@ -694,7 +590,7 @@ struct TrayPanel::Impl : PanelAccessibility::Host {
             lo.platSeg[i] = D2D1::RectF(x0, lo.platTrack.top + 3.f, x0 + pSegW, lo.platTrack.bottom - 3.f);
             AddHit(lo.platSeg[i], platActs[i], true, 7.f);
         }
-        y += 46.f;
+        y += 44.f;
 
         // Customize controls row: placed right below target platform
         lo.customize = D2D1::RectF(8.f, y, kWidth - 8.f, y + 56.f);
@@ -913,16 +809,13 @@ struct TrayPanel::Impl : PanelAccessibility::Host {
 
         Fill(D2D1::RectF(0, lo.div1, kWidth, lo.div1 + 1), 0.f, 0xffffff, 0.07f);
 
-        // Target Platform: header, prominent 38x38 selected controller icon, and segmented switch buttons
+        // Target Platform: header and full-width segmented buttons
         Text(L"TARGET PLATFORM", lo.platLabel, 10.5f, DWRITE_FONT_WEIGHT_SEMI_BOLD, kText3, 1.f, true,
              DWRITE_TEXT_ALIGNMENT_LEADING, 1.4f);
 
-        // Single prominent selected controller icon (matching Steamless mode tile size)
-        DrawSelectedPlatformIcon(lo.platTile, m.platform);
-
-        // Segmented buttons track on the right
+        // Segmented buttons track across full width
         Fill(lo.platTrack, 9.f, kInset);
-        static const wchar_t* const platLabels[4] = { L"Xbox 360", L"PS4", L"PS5", L"Switch Pro" };
+        static const wchar_t* const platLabels[4] = { L"Xbox", L"PS4", L"PS5", L"Switch" };
         static const UINT32 platAccents[4] = { 0x22c55e, 0x38bdf8, 0x60a5fa, 0xf43f5e };
         static const Action platActs[4] = { Action::PlatformXbox, Action::PlatformPS, Action::PlatformPS5, Action::PlatformSwitch };
         for (int i = 0; i < 4; ++i) {
@@ -932,12 +825,12 @@ struct TrayPanel::Impl : PanelAccessibility::Host {
                                 (i == 3 && m.platform == ControllerPlatform::Switch);
             const UINT32 actCol = platAccents[i];
             if (active) {
-                Fill(lo.platSeg[i], 7.f, actCol, 0.18f);
-                Outline(lo.platSeg[i], 7.f, actCol, 0.65f, 1.2f);
+                Fill(lo.platSeg[i], 7.f, actCol, 0.20f);
+                Outline(lo.platSeg[i], 7.f, actCol, 0.75f, 1.3f);
             } else {
                 DrawHoverFor(platActs[i], lo.platSeg[i], 7.f, 0xffffff, 0.06f);
             }
-            Text(platLabels[i], lo.platSeg[i], 11.5f, DWRITE_FONT_WEIGHT_SEMI_BOLD, active ? 0xffffff : kText2, 1.f,
+            Text(platLabels[i], lo.platSeg[i], 12.0f, DWRITE_FONT_WEIGHT_SEMI_BOLD, active ? 0xffffff : kText2, 1.f,
                  false, DWRITE_TEXT_ALIGNMENT_CENTER);
         }
 

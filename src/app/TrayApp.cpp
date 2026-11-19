@@ -603,14 +603,14 @@ void TrayApp::SetPlatform(ControllerPlatform platform) {
     SaveSettings();
     PushActiveProfile();
     EventLog::Write("USER: platform set to %s",
-                    platform == ControllerPlatform::Xbox ? "Xbox 360" :
-                    platform == ControllerPlatform::PlayStation ? "PlayStation 4" :
-                    platform == ControllerPlatform::DualSense ? "PlayStation 5" : "Switch Pro");
+                    platform == ControllerPlatform::Xbox ? "Xbox 360 (XInput Controller)" :
+                    platform == ControllerPlatform::PlayStation ? "PlayStation 4 (DualShock 4)" :
+                    platform == ControllerPlatform::DualSense ? "PlayStation 5 (DualSense)" : "Nintendo Switch (Pro Controller)");
     if (m_notificationsEnabled) {
-        std::wstring name = (platform == ControllerPlatform::Xbox ? L"Xbox 360" :
-                             platform == ControllerPlatform::PlayStation ? L"PlayStation 4" :
-                             platform == ControllerPlatform::DualSense ? L"PlayStation 5 (DualSense)" : L"Nintendo Switch Pro");
-        ShowAlertBalloon(L"Platform Changed", L"Emulating " + name + L" controller (Player 1)", BalloonAction::None, NIIF_INFO);
+        std::wstring name = (platform == ControllerPlatform::Xbox ? L"Xbox 360 (XInput Controller)" :
+                             platform == ControllerPlatform::PlayStation ? L"PlayStation 4 (DualShock 4)" :
+                             platform == ControllerPlatform::DualSense ? L"PlayStation 5 (DualSense)" : L"Nintendo Switch (Pro Controller)");
+        ShowAlertBalloon(L"Platform Changed", L"Emulating " + name + L" (Player 1)", BalloonAction::None, NIIF_INFO);
     }
 }
 

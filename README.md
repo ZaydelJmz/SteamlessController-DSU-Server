@@ -19,20 +19,20 @@ A standalone driver and input wrapper specifically tailored for the **Steam Cont
   * Complete driver and input wrapper running outside of Steam.
   * Direct support for dual trackpads, analog thumbstick, 4 back grip buttons / paddles, and wireless connectivity via "The Puck" (USB dongle), Bluetooth, or USB cable.
 
-* 🎛️ **Quick "Choose Platform" Selector with Official High-DPI Logos**
-  * Located on the tray panel beneath *Customize Controls*.
-  * Features a **4-button segmented bar** with crisp, official high-DPI vector logos (38×38 DIPs):
-    * **Xbox 360**: Emerald green sphere with 3D chrome/white cross and glowing core.
-    * **PlayStation 4**: Classic PlayStation blue monogram with PS4 badge.
-    * **PlayStation 5**: DualSense white & electric blue monogram with PS5 badge.
-    * **Nintendo Switch Pro**: Neon red Dual Joy-Con emblem with PRO badge.
-  * **Seamless 600 ms Cooldown Switch**: Clean teardown and rebuild pumping Win32 messages with visual amber feedback (`Switching platform...`), ensuring Windows PnP assigns the new virtual pad strictly to **Player 1 / Gamepad 1 (Slot 0)**.
+* 🎛️ **Quick Target Platform Selector**
+  * Located directly on the system tray panel.
+  * Features a **clean, full-width 4-button segmented bar** (`[ Xbox ] [ PS4 ] [ PS5 ] [ Switch ]`) with dedicated color accents:
+    * **Xbox**: Emerald green (`#22c55e`)
+    * **PS4**: Classic PlayStation blue (`#38bdf8`)
+    * **PS5**: DualSense electric blue (`#60a5fa`)
+    * **Switch**: Neon red (`#f43f5e`)
+  * **Seamless 1000 ms Cooldown Switch**: Clean teardown and rebuild pumping Win32 messages with visual amber feedback (`Switching platform...`), ensuring Windows PnP assigns the new virtual pad strictly to **Player 1 / Gamepad 1 (Slot 0)**.
 
 * 🕹️ **Four Emulated Controller Modes**
-  * **Xbox 360** (via ViGEmBus): Maximum out-of-the-box compatibility with Windows PC titles.
-  * **DualShock 4** (via ViGEmBus): PS4 gamepad emulation with lightbar and native touchpad.
+  * **Xbox 360 (XInput Controller)** (via ViGEmBus): Maximum out-of-the-box compatibility with Windows PC titles.
+  * **PlayStation 4 (DualShock 4)** (via ViGEmBus): PS4 gamepad emulation with lightbar and native touchpad.
   * **PlayStation 5 (DualSense)** (via VIIPER + USBIP): 33-byte native report with dual-point touchpad, gyro/accel motion, and adaptive trigger feedback.
-  * **Nintendo Switch Pro** (via VIIPER + USBIP): 24-byte report with 0..4095 analog stick resolution, real-time battery reporting, system `Capture` & `Home` buttons, and native 6-axis gyro.
+  * **Nintendo Switch (Pro Controller)** (via VIIPER + USBIP): 24-byte report with 0..4095 analog stick resolution, real-time battery reporting, system `Capture` & `Home` buttons, and native 6-axis gyro.
 
 * 🌐 **Built-in Cemuhook DSU Motion Server (`127.0.0.1:26760`)**
   * Direct 6-axis IMU UDP motion streaming for gyro aiming in emulators (**Ryujinx, Yuzu, Cemu, Dolphin, PCSX2, RPCS3, Citra**).
