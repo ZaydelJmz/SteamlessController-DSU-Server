@@ -5,18 +5,18 @@
 [![Hardware](https://img.shields.io/badge/Hardware-Steam%20Controller%202-purple?style=flat-square)](https://github.com/ZaydelJmz/SteamlessController-DSU-Server)
 [![License](https://img.shields.io/badge/License-GPLv3-green?style=flat-square)](LICENSE)
 
-> **Notice:** This project is an enhanced standalone fork based on the original [SteamlessController](https://github.com/ddeverill/SteamlessController) by **ddeverill**, extending it for the **Steam Controller 2** with an integrated Cemuhook DSU motion server, Nintendo Switch (Pro Controller) & PlayStation 5 (DualSense) emulation via USBIP, streamlined platform switcher, and advanced haptic controls.
+> **Notice:** This project is an enhanced standalone fork based on the original [SteamlessController](https://github.com/ddeverill/SteamlessController) by **ddeverill**, extending it for the **Steam Controller 2** on Windows with an integrated Cemuhook DSU motion server, Nintendo Switch (Pro Controller) & PlayStation 5 (DualSense) emulation via USBIP, streamlined platform switcher, and advanced haptic controls.
 
-A standalone driver and input wrapper specifically tailored for the **Steam Controller 2** on Windows that operates completely **without the Steam client running**.
+A standalone driver and input wrapper specifically tailored for the **Steam Controller 2** on Windows (10 and 11, 64-bit) that operates completely **without the Steam client running**.
 
-**SteamlessController DSU Server** unlocks full independence for your Steam Controller 2, emulating standard and modern gamepads (**Xbox 360 (XInput Controller)**, **PlayStation 4 (DualShock 4)**, **PlayStation 5 (DualSense)**, and **Nintendo Switch (Pro Controller)**) alongside an **integrated Cemuhook DSU motion server** (`127.0.0.1:26760`) for next-gen gyro aiming in emulators and PC games.
+**SteamlessController DSU Server** unlocks full independence for your Steam Controller 2 on Windows, emulating standard and modern gamepads (**Xbox 360 (XInput Controller)**, **PlayStation 4 (DualShock 4)**, **PlayStation 5 (DualSense)**, and **Nintendo Switch (Pro Controller)**) alongside an **integrated Cemuhook DSU motion server** (`127.0.0.1:26760`) for next-gen gyro aiming in emulators and PC games.
 
 ---
 
 ## 🌟 Key Features
 
 * 🎮 **Full Steam Controller 2 Independence**
-  * Complete driver and input wrapper running outside of Steam.
+  * Complete driver and input wrapper for Windows running outside of Steam.
   * Direct support for dual trackpads, analog thumbstick, 4 back grip buttons / paddles, and wireless connectivity via "The Puck" (USB dongle), Bluetooth, or USB cable.
 
 * 🎛️ **Quick Target Platform Selector**
@@ -125,18 +125,18 @@ This project is licensed under the **GNU General Public License v3.0 (GPLv3)** �
 
 ## SteamlessController DSU Server 🎮
 
-> **Aviso:** Este proyecto es un fork independiente mejorado basado en el [SteamlessController](https://github.com/ddeverill/SteamlessController) original de **ddeverill**, ampliándolo para el **Steam Controller 2** con un servidor de movimiento Cemuhook DSU integrado, emulación de Nintendo Switch (Pro Controller) y PlayStation 5 (DualSense) vía USBIP, selector de plataformas optimizado y controles hápticos avanzados.
+> **Aviso:** Este proyecto es un fork independiente mejorado basado en el [SteamlessController](https://github.com/ddeverill/SteamlessController) original de **ddeverill**, ampliándolo para el **Steam Controller 2** en Windows con un servidor de movimiento Cemuhook DSU integrado, emulación de Nintendo Switch (Pro Controller) y PlayStation 5 (DualSense) vía USBIP, selector de plataformas optimizado y controles hápticos avanzados.
 
-Controlador y wrapper de entrada independiente diseñado específicamente para el **Steam Controller 2** en Windows que funciona completamente **sin necesidad del cliente de Steam en segundo plano**.
+Controlador y wrapper de entrada independiente diseñado específicamente para el **Steam Controller 2** en Windows (10 y 11, 64 bits) que funciona completamente **sin necesidad del cliente de Steam en segundo plano**.
 
-**SteamlessController DSU Server** desbloquea la independencia total de tu Steam Controller 2, emulando mandos estándar y modernos (**Xbox 360 (XInput Controller)**, **PlayStation 4 (DualShock 4)**, **PlayStation 5 (DualSense)** y **Nintendo Switch (Pro Controller)**) junto a un **servidor de movimiento Cemuhook DSU integrado** (`127.0.0.1:26760`) para apuntado por giroscopio de última generación en emuladores y juegos de PC.
+**SteamlessController DSU Server** desbloquea la independencia total de tu Steam Controller 2 en Windows, emulando mandos estándar y modernos (**Xbox 360 (XInput Controller)**, **PlayStation 4 (DualShock 4)**, **PlayStation 5 (DualSense)** y **Nintendo Switch (Pro Controller)**) junto a un **servidor de movimiento Cemuhook DSU integrado** (`127.0.0.1:26760`) para apuntado por giroscopio de última generación en emuladores y juegos de PC.
 
 ---
 
 ### 🌟 Características Principales
 
 * 🎮 **Independencia Total del Steam Controller 2**
-  * Controlador y wrapper de entrada completo que funciona fuera de Steam.
+  * Controlador y wrapper de entrada completo para Windows que funciona fuera de Steam.
   * Soporte directo para ambos trackpads, stick analógico, los 4 botones traseros (palancas / grips) y conectividad inalámbrica mediante "The Puck" (dongle USB), Bluetooth o cable USB.
 
 * 🎛️ **Selector Rápido de Plataforma**
