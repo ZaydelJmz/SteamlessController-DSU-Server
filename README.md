@@ -2,20 +2,20 @@
 
 [![GitHub release](https://img.shields.io/github/v/release/ZaydelJmz/SteamlessController-DSU-Server?style=flat-square&color=blue)](https://github.com/ZaydelJmz/SteamlessController-DSU-Server/releases/latest)
 [![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011%20(x64)-informational?style=flat-square)](https://github.com/ZaydelJmz/SteamlessController-DSU-Server)
-[![Hardware](https://img.shields.io/badge/Hardware-Steam%20Controller-purple?style=flat-square)](https://github.com/ZaydelJmz/SteamlessController-DSU-Server)
+[![Hardware](https://img.shields.io/badge/Hardware-Steam%20Controller%202-purple?style=flat-square)](https://github.com/ZaydelJmz/SteamlessController-DSU-Server)
 [![License](https://img.shields.io/badge/License-GPLv3-green?style=flat-square)](LICENSE)
 
-> **Notice:** This project is an enhanced standalone fork based on the original [SteamlessController](https://github.com/ddeverill/SteamlessController) by **ddeverill**, extending it for the **Steam Controller** with an integrated Cemuhook DSU motion server, Nintendo Switch Pro & PlayStation 5 (DualSense) emulation via USBIP, official platform logos, and advanced haptic controls.
+> **Notice:** This project is an enhanced standalone fork based on the original [SteamlessController](https://github.com/ddeverill/SteamlessController) by **ddeverill**, extending it for the **Steam Controller 2** with an integrated Cemuhook DSU motion server, Nintendo Switch (Pro Controller) & PlayStation 5 (DualSense) emulation via USBIP, streamlined platform switcher, and advanced haptic controls.
 
-A standalone driver and input wrapper specifically tailored for the **Steam Controller** on Windows that operates completely **without the Steam client running**.
+A standalone driver and input wrapper specifically tailored for the **Steam Controller 2** on Windows that operates completely **without the Steam client running**.
 
-**SteamlessController DSU Server** unlocks full independence for your Steam Controller, emulating standard and modern gamepads (**Xbox 360**, **PlayStation 4**, **PlayStation 5 DualSense**, and **Nintendo Switch Pro**) alongside an **integrated Cemuhook DSU motion server** (`127.0.0.1:26760`) for next-gen gyro aiming in emulators and PC games.
+**SteamlessController DSU Server** unlocks full independence for your Steam Controller 2, emulating standard and modern gamepads (**Xbox 360 (XInput Controller)**, **PlayStation 4 (DualShock 4)**, **PlayStation 5 (DualSense)**, and **Nintendo Switch (Pro Controller)**) alongside an **integrated Cemuhook DSU motion server** (`127.0.0.1:26760`) for next-gen gyro aiming in emulators and PC games.
 
 ---
 
 ## 🌟 Key Features
 
-* 🎮 **Full Steam Controller Independence**
+* 🎮 **Full Steam Controller 2 Independence**
   * Complete driver and input wrapper running outside of Steam.
   * Direct support for dual trackpads, analog thumbstick, 4 back grip buttons / paddles, and wireless connectivity via "The Puck" (USB dongle), Bluetooth, or USB cable.
 
@@ -41,7 +41,7 @@ A standalone driver and input wrapper specifically tailored for the **Steam Cont
 * 📳 **Advanced Haptics & Trackpad Movement Controls**
   * **Movement Haptics** toggle in Customize Controls to silence continuous trackpad gliding buzz while preserving crisp tactile click pulses.
   * Click pulses only trigger when a real action is bound; inert when set to 'None'.
-  * Full translation of dual-motor rumble and **Nintendo HD Rumble** frequency envelopes into realistic tactile waveforms on the Steam Controller LRA actuators.
+  * Full translation of dual-motor rumble and **Nintendo HD Rumble** frequency envelopes into realistic tactile waveforms on the Steam Controller 2 LRA actuators.
 
 * 🔋 **Intelligent Auto-Disable Sleep Watchdog (12s)**
   * When the controller powers off (timeout, battery empty, or button) while the wireless dongle stays plugged in, the app automatically transitions to **Off** after 12 seconds of silence.
@@ -61,9 +61,9 @@ A standalone driver and input wrapper specifically tailored for the **Steam Cont
 
 ### 1. Requirements
 * Windows 10 or 11 (64-bit)
-* Steam Controller (connected via "The Puck" wireless dongle, Bluetooth, or USB cable)
-* **[ViGEmBus](https://github.com/nefarius/ViGEmBus)** (for Xbox 360 & DualShock 4 emulation)
-* **[usbip-win2](https://github.com/cezanne/usbip-win2)** (for Switch Pro & PS5 DualSense emulation)
+* Steam Controller 2 (connected via "The Puck" wireless dongle, Bluetooth, or USB cable)
+* **[ViGEmBus](https://github.com/nefarius/ViGEmBus)** (for Xbox 360 (XInput Controller) & PlayStation 4 (DualShock 4) emulation)
+* **[usbip-win2](https://github.com/cezanne/usbip-win2)** (for Nintendo Switch (Pro Controller) & PlayStation 5 (DualSense) emulation)
 * Visual C++ 2015–2022 Redistributable (x64)
 
 > 💡 **Quick Install**: An automated installer script (`Instalar requisitos.cmd`) is included in the release package to download and install all missing drivers with one click.
@@ -76,7 +76,7 @@ A standalone driver and input wrapper specifically tailored for the **Steam Cont
 2. Extract the folder to your preferred location (e.g. `C:\Programas\SteamlessDSUServer-0.1.6`).
 3. If running for the first time, right-click **`Instalar requisitos.cmd`** and select **"Run as administrator"**.
 4. Restart Windows if installing drivers for the first time.
-5. Connect your Steam Controller and launch **`SteamlessController.exe`**.
+5. Connect your Steam Controller 2 and launch **`SteamlessController.exe`**.
 6. The application minimizes to the notification area (system tray). Click the tray icon to switch platforms instantly via **"Choose Platform"** or customize controls.
 
 ---
@@ -125,34 +125,34 @@ This project is licensed under the **GNU General Public License v3.0 (GPLv3)** �
 
 ## SteamlessController DSU Server 🎮
 
-> **Aviso:** Este proyecto es un fork independiente basado en el [SteamlessController](https://github.com/ddeverill/SteamlessController) original de **ddeverill**, adaptándolo para el **Steam Controller** con un servidor de movimiento Cemuhook DSU integrado, emulación de Nintendo Switch Pro y PlayStation 5 (DualSense) vía USBIP, logotipos oficiales en alta definición y controles hápticos avanzados.
+> **Aviso:** Este proyecto es un fork independiente basado en el [SteamlessController](https://github.com/ddeverill/SteamlessController) original de **ddeverill**, adaptándolo para el **Steam Controller 2** con un servidor de movimiento Cemuhook DSU integrado, emulación de Nintendo Switch (Pro Controller), PlayStation 5 (DualSense), PlayStation 4 (DualShock 4) y Xbox 360 (XInput Controller) vía ViGEmBus/USBIP, selector de plataformas rediseñado y controles hápticos avanzados.
 
-Controlador independiente para el **Steam Controller** en Windows que funciona **sin necesidad de abrir Steam**.
+Controlador independiente para el **Steam Controller 2** en Windows que funciona **sin necesidad de abrir Steam**.
 
-**SteamlessController DSU Server** desbloquea la independencia total del Steam Controller, emulando mandos estándar y modernos (**Xbox 360**, **PlayStation 4**, **PlayStation 5 DualSense** y **Nintendo Switch Pro**) e integrando un **servidor de movimiento Cemuhook DSU** (`127.0.0.1:26760`) para apuntar con el giroscopio en emuladores y juegos de PC.
+**SteamlessController DSU Server** desbloquea la independencia total del Steam Controller 2, emulando mandos estándar y modernos (**Xbox 360 (XInput Controller)**, **PlayStation 4 (DualShock 4)**, **PlayStation 5 (DualSense)** y **Nintendo Switch (Pro Controller)**) e integrando un **servidor de movimiento Cemuhook DSU** (`127.0.0.1:26760`) para apuntar con el giroscopio en emuladores y juegos de PC.
 
 ---
 
 ### 🌟 Características Principales
 
-* 🎮 **Soporte Completo e Independiente para Steam Controller**
+* 🎮 **Soporte Completo e Independiente para Steam Controller 2**
   * Wrapper y controlador completo que funciona fuera de Steam.
   * Soporte para ambos trackpads hápticos, stick analógico, los botones traseros (L4/R4, L5/R5) y conectividad mediante "The Puck" (dongle USB), Bluetooth o cable USB.
 
-* 🎛️ **Botonera "Choose Platform" con Logotipos Oficiales (38x38 DIPs)**
-  * Disponible en el panel de la bandeja del sistema debajo de *Customize Controls*.
-  * Iconos oficiales diseñados en vector de alta resolución:
-    * **Xbox 360**: Esfera verde esmeralda con cruz cromada en relieve y núcleo brillante.
-    * **PlayStation 4**: Monograma oficial PlayStation en azul PS4.
-    * **PlayStation 5**: Monograma con estética DualSense en blanco hielo y azul eléctrico.
-    * **Nintendo Switch Pro**: Emblema de los dos Joy-Con en rojo neón con distintivo PRO.
-  * **Cooldown visible de 600 ms**: Destrucción y recreación ordenada con bomba de mensajes Win32 y estado ámbar (`Switching platform...`), garantizando que Windows asigne siempre el nuevo mando al **Jugador 1 / Mando 1 (Slot 0)**.
+* 🎛️ **Selector Rápido de Plataforma**
+  * Ubicado directamente en el panel de la bandeja del sistema debajo de *Customize Controls*.
+  * Presenta una **barra segmentada de 4 botones de ancho completo** (`[ Xbox ] [ PS4 ] [ PS5 ] [ Switch ]`) con acentos de color dedicados:
+    * **Xbox**: Verde esmeralda (`#22c55e`)
+    * **PS4**: Azul clásico PlayStation (`#38bdf8`)
+    * **PS5**: Azul eléctrico DualSense (`#60a5fa`)
+    * **Switch**: Rojo neón (`#f43f5e`)
+  * **Transición fluida con Cooldown de 1000 ms**: Desconexión y reconexión limpia procesando mensajes Win32 con indicador visual ámbar (`Switching platform...`), garantizando que Windows asigne siempre el nuevo mando virtual estrictamente al **Jugador 1 / Mando 1 (Slot 0)**.
 
 * 🕹️ **Cuatro Modos de Emulación Virtual**
-  * **Xbox 360** (vía ViGEmBus): Máxima compatibilidad con juegos de PC de todas las épocas.
-  * **DualShock 4** (vía ViGEmBus): Emulación de PS4 con touchpad táctil y barra de luz.
-  * **PlayStation 5 (DualSense)** (vía VIIPER + USBIP): Reporte de 33 bytes con soporte táctil, giroscopio y vibración de gatillos.
-  * **Nintendo Switch Pro** (vía VIIPER + USBIP): Reporte de 24 bytes con resolución de stick 0..4095, batería en tiempo real, botones `Captura` y `Home`, y giroscopio nativo de 6 ejes.
+  * **Xbox 360 (XInput Controller)** (vía ViGEmBus): Máxima compatibilidad con títulos de PC para Windows.
+  * **PlayStation 4 (DualShock 4)** (vía ViGEmBus): Emulación de mando de PS4 con touchpad táctil y barra de luz nativa.
+  * **PlayStation 5 (DualSense)** (vía VIIPER + USBIP): Reporte nativo de 33 bytes con touchpad de doble punto, giroscopio/acelerómetro y respuesta háptica en gatillos.
+  * **Nintendo Switch (Pro Controller)** (vía VIIPER + USBIP): Reporte nativo de 24 bytes con resolución de stick 0..4095, reporte de batería en tiempo real, botones de sistema `Captura` y `Home`, y giroscopio nativo de 6 ejes.
 
 * 🌐 **Servidor de Movimiento Cemuhook DSU Integrado (`127.0.0.1:26760`)**
   * Transmisión directa por UDP de acelerómetro y giroscopio de 6 ejes para emuladores (**Ryujinx, Yuzu, Cemu, Dolphin, PCSX2, RPCS3, Citra**).
@@ -160,13 +160,13 @@ Controlador independiente para el **Steam Controller** en Windows que funciona *
 
 * 📳 **Control de Hápticos y Desplazamiento**
   * Selector "Movement Haptics" para silenciar el zumbido continuo al deslizar el dedo por el trackpad sin perder la respuesta táctil al presionar clics reales.
-  * Conversión de vibración de dos motores y del **HD Rumble** de Nintendo a impulsos táctiles LRA del Steam Controller.
+  * Conversión de vibración de dos motores y del **HD Rumble** de Nintendo a impulsos táctiles LRA del Steam Controller 2.
 
 * 🔋 **Watchdog de Inactividad y Apagado (12s)**
   * Si el control se apaga o se duerme con el dongle conectado, la app pasa a estado **Off** tras 12 segundos, liberando el slot virtual y evitando porcentajes de batería congelados. Al encenderse de nuevo, se reconecta automáticamente.
 
 * 🗺️ **Mapear botón Back a Touchpad Click (PlayStation 4 y 5)**
-  * Opción conmutable en Customize Controls (pestaña `General`) para vincular el botón Back físico del Steam Controller con el clic del touchpad de PlayStation y viceversa.
+  * Opción conmutable en Customize Controls (pestaña `General`) para vincular el botón Back físico del Steam Controller 2 con el clic del touchpad de PlayStation y viceversa.
   * Ideal para títulos multiplataforma (como *Fortnite*) donde abrir el mapa o ver la puntuación está ligado al clic del touchpad en consolas de PlayStation.
 
 * 🧠 **Detección Inteligente de Steam**
@@ -181,7 +181,7 @@ Controlador independiente para el **Steam Controller** en Windows que funciona *
 2. Descomprime la carpeta donde prefieras.
 3. Si es tu primera vez, haz clic derecho sobre **`Instalar requisitos.cmd`** y elige **"Ejecutar como administrador"**.
 4. Reinicia el equipo si instalaste drivers nuevos.
-5. Abre **`SteamlessController.exe`**.
+5. Conecta tu Steam Controller 2 y abre **`SteamlessController.exe`**.
 6. El programa se iniciará en la bandeja del sistema (junto al reloj de Windows). Haz clic en su icono para alternar de plataforma o configurar controles.
 
 ---
