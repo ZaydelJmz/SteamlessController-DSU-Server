@@ -330,6 +330,7 @@ add_executable(RemapWindowProbe
     src/app/RemapWindow.cpp
     src/app/SteamAppLocator.cpp
     src/app/ViGEmBusInfo.cpp
+    src/app/I18n.cpp
     resources/fonts.rc
 )
 target_include_directories(RemapWindowProbe PRIVATE
