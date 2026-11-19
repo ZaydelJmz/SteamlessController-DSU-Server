@@ -297,8 +297,8 @@ struct TrayPanel::Impl : PanelAccessibility::Host {
         control(Action::PlatformPS, Kind::Radio, L"PS4", L"", m.platform == ControllerPlatform::PlayStation, -1, 2, 4);
         control(Action::PlatformPS5, Kind::Radio, L"PS5", L"", m.platform == ControllerPlatform::DualSense, -1, 3, 4);
         control(Action::PlatformSwitch, Kind::Radio, L"Switch", L"", m.platform == ControllerPlatform::Switch, -1, 4, 4);
-        control(Action::Customize, Kind::Button, L"Customize Controls",
-                L"Bindings, trackpads, triggers, sticks", false, -1, 0, 0);
+        control(Action::Customize, Kind::Button, I18n::Text(TextId::CustomizeControls),
+                I18n::Text(TextId::CustomizeSub), false, -1, 0, 0);
         for (int i = 0; i < lay.rowCount; ++i)
             control(lay.rowAct[i], Kind::Toggle, RowLabel(lay.rowAct[i]), L"", RowOn(lay.rowAct[i]), -1, 0, 0);
         control(Action::OpenLog, Kind::Button, L"Event log", L"", false, -1, 0, 0);

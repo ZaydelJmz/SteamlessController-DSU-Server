@@ -281,19 +281,19 @@ R"HTML(
 <div id="titlebar">
   <div class="left">
     <div class="glyph"><svg width="15" height="11" viewBox="18 38 220 166" aria-hidden="true"><path fill="#bfe3ff" d="M78 44C100 40 170 40 192 44C220 50 236 80 236 110C236 140 232 165 226 185C222 198 212 202 204 198C196 194 192 180 186 168C182 160 176 158 168 158L88 158C80 158 74 160 70 168C64 180 60 194 52 198C44 202 34 198 30 186C24 165 20 140 20 110C20 80 36 50 78 44Z"/><circle cx="128" cy="98" r="25" fill="none" stroke="#0a4a78" stroke-width="10"/></svg></div>
-    <span class="tb-title">Customize Controls</span>
+    <span class="tb-title" id="tb-title">Customize Controls</span>
   </div>
   <div class="combo-wrap nodrag">
     <button class="combo-toggle" id="combo-toggle">
-      <span class="cb-text"><span class="cb-label">APPLYING TO</span><span id="combo-current">Default (all other games)</span></span>
+      <span class="cb-text"><span class="cb-label" id="cb-label">APPLYING TO</span><span id="combo-current">Default (all other games)</span></span>
       <span class="chev">&#9660;</span>
     </button>
     <div class="combo-panel" id="combo-panel" style="display:none;">
       <input class="combo-search" id="combo-search" type="text" placeholder="Search for a game or app..." autocomplete="off">
       <div id="combo-results"></div>
       <div class="combo-add" id="combo-add">
-        <div class="combo-add-item" onclick="askRunningApps()">&#43;&nbsp; Add an app that&#39;s running now&#8230;</div>
-        <div class="combo-add-item" onclick="askBrowseExe()">&#43;&nbsp; Browse for a program&#8230;</div>
+        <div class="combo-add-item" id="combo-add-running" onclick="askRunningApps()">&#43;&nbsp; Add an app that&#39;s running now&#8230;</div>
+        <div class="combo-add-item" id="combo-add-browse" onclick="askBrowseExe()">&#43;&nbsp; Browse for a program&#8230;</div>
       </div>
     </div>
   </div>
@@ -321,12 +321,12 @@ R"HTML(
     </div>
     <div class="missing-note" id="missing-note" style="display:none;">This game wasn't found on this PC. Its profile is kept, and will start working again if the game comes back. Delete this if the game won't be coming back.</div>
   <div class="group" id="inherit-group" style="display:none;">
-    <div class="group-label">MAPPINGS</div>
+    <div class="group-label" id="gl-mappings">MAPPINGS</div>
     <div class="inherit-row">
       <input type="checkbox" id="use-default">
-      <label for="use-default">Use my default mappings</label>
+      <label for="use-default" id="inherit-label">Use my default mappings</label>
     </div>
-    <div class="inherit-note">This game turns the controller on and uses the controls from your default profile, including any later changes to it. Uncheck to give this game controls of its own.</div>
+    <div class="inherit-note" id="inherit-note">This game turns the controller on and uses the controls from your default profile, including any later changes to it. Uncheck to give this game controls of its own.</div>
   </div>
     <section class="pane active" id="pane-general">
       <div class="pane-head"><h2>General</h2><p>Which controller your games see, and how strongly it rumbles.</p></div>
@@ -900,7 +900,7 @@ var INPUTS = [
   {id:'touchKeyboard',glyph:'KBD',  label:'Touch Keyboard', labelEs:'Teclado en Pantalla', bg:'#2a3a2a',fg:'#9ac89a'},
   {id:'guide',     glyph:'GDE',     label:'Guide Button', labelEs:'Botón Guía', bg:'#2a3a2a',fg:'#9ac89a',
    ps:{glyph:'PS',label:'PS Button', labelEs:'Botón PS', bg:'#2a3a2a',fg:'#9ac89a'}},
-  {id:'touchpadClick',glyph:'TPC',  label:'PlayStation Touchpad Click', labelEs:'Click Touchpad PlayStation', bg:'#2a3a2a',fg:'#9ac89a'},
+  {id:'touchpadClick',glyph:'TPC',  label:'PlayStation Touchpad Click', labelEs:'Click en Touchpad PlayStation', bg:'#2a3a2a',fg:'#9ac89a'},
   {id:'none',      glyph:'OFF',     label:'Off', labelEs:'Desactivado', bg:'#1e2d3d',fg:'#5a7a9a'},
 ];
 var byId = {};
@@ -987,6 +987,22 @@ function applyLanguage(lang){
     for(var i=0; i<els.length; i++) els[i].textContent = text;
   };
 
+  // Title bar & window controls
+  setT('#tb-title', isEs ? 'Personalizar Controles' : 'Customize Controls');
+  var bMin = document.getElementById('btn-min');
+  if(bMin) bMin.title = isEs ? 'Minimizar' : 'Minimize';
+  var bCls = document.getElementById('btn-close');
+  if(bCls) bCls.title = isEs ? 'Cerrar' : 'Close';
+
+  // Game dropdown / combo
+  setT('.cb-label', isEs ? 'APLICANDO A' : 'APPLYING TO');
+  var cs = document.getElementById('combo-search');
+  if(cs) cs.placeholder = isEs ? 'Buscar un juego o aplicación…' : 'Search for a game or app...';
+  var addRun = document.getElementById('combo-add-running');
+  if(addRun) addRun.innerHTML = '&#43;&nbsp; ' + (isEs ? 'Añadir una aplicación en ejecución&#8230;' : 'Add an app that&#39;s running now&#8230;');
+  var addBrw = document.getElementById('combo-add-browse');
+  if(addBrw) addBrw.innerHTML = '&#43;&nbsp; ' + (isEs ? 'Buscar un programa&#8230;' : 'Browse for a program&#8230;');
+
   // Rail
   setT('#rail-general .ri-title', 'General');
   setT('#rail-lpad .ri-title', isEs ? 'Trackpad Izquierdo' : 'Left Trackpad');
@@ -1011,6 +1027,7 @@ function applyLanguage(lang){
 
   // Group labels
   setT('#pane-general .group-label', isEs ? 'AJUSTES GENERALES' : 'GENERAL SETTINGS');
+  setT('#gl-mappings', isEs ? 'MAPEOS' : 'MAPPINGS');
   setT('#gl-lpad', isEs ? 'TRACKPAD IZQUIERDO' : 'LEFT TRACKPAD');
   setT('#gl-rpad', isEs ? 'TRACKPAD DERECHO' : 'RIGHT TRACKPAD');
   setT('#gl-ltrig', isEs ? 'GATILLO IZQUIERDO' : 'LEFT TRIGGER');
@@ -1087,6 +1104,7 @@ function applyLanguage(lang){
 
   // Trigger full re-render of dynamic items
   renderComboLabel();
+  renderCombo();
   renderModeSelects();
   renderAll();
   renderChrome();
@@ -1410,8 +1428,11 @@ function gameName(gameId){
   for(var i=0;i<GAMES.length;i++) if(GAMES[i].id===gameId) return GAMES[i].name;
   return '';
 }
+function defaultLabel(){
+  return isEs ? 'Por defecto (todos los demás juegos)' : 'Default (all other games)';
+}
 function currentLabel(){
-  return currentGame===''?'Default (all other games)':(gameName(currentGame)||'Unknown game');
+  return currentGame==='' ? defaultLabel() : (gameName(currentGame)||(isEs ? 'Juego desconocido' : 'Unknown game'));
 }
 function renderComboLabel(){
   document.getElementById('combo-current').textContent=currentLabel();
@@ -1441,12 +1462,12 @@ function renderCombo(){
 
   var pinned=pinnedGames();
   if(q) pinned=pinned.filter(function(g){return g.name.toLowerCase().indexOf(q)>=0;});
-  var showDefault=!q||'default (all other games)'.indexOf(q)>=0;
+  var showDefault=!q||'default (all other games)'.indexOf(q)>=0||(isEs&&'por defecto (todos los demas juegos)'.indexOf(q)>=0);
 
   if(showDefault||pinned.length){
-    html+='<div class="combo-section-label">PROFILES</div><div class="combo-list">';
+    html+='<div class="combo-section-label">' + (isEs ? 'PERFILES' : 'PROFILES') + '</div><div class="combo-list">';
     if(showDefault)
-      html+=itemHTML('','Default (all other games)');
+      html+=itemHTML('', defaultLabel());
     pinned.forEach(function(g){html+=itemHTML(g.id,g.name,g.missing==='1');});
     html+='</div>';
   }
@@ -1458,7 +1479,7 @@ function renderCombo(){
       return !pinnedIds[g.id]&&g.name.toLowerCase().indexOf(q)>=0;
     }).slice(0,50);  // a two-letter query can match hundreds; cap the DOM work
     if(matches.length){
-      html+='<div class="combo-section-label">FOUND ON THIS PC</div><div class="combo-list">';
+      html+='<div class="combo-section-label">' + (isEs ? 'ENCONTRADOS EN ESTA PC' : 'FOUND ON THIS PC') + '</div><div class="combo-list">';
       matches.forEach(function(g){html+=itemHTML(g.id,g.name,g.missing==='1');});
       html+='</div>';
     } else if(!pinned.length&&!showDefault){
@@ -1466,11 +1487,11 @@ function renderCombo(){
       // below the results are what answers it, so say so rather than leaving
       // them at a dead end.
       html+='<div class="combo-empty">'+(gamesPending
-        ?'Still looking for your games&#8230;'
-        :'Nothing matches "'+escapeHTML(comboQuery)+'".<br>Add it yourself below.')+'</div>';
+        ? (isEs ? 'Buscando aún tus juegos&#8230;' : 'Still looking for your games&#8230;')
+        : (isEs ? 'No hay coincidencias con "'+escapeHTML(comboQuery)+'".<br>Agrégalo tú mismo abajo.' : 'Nothing matches "'+escapeHTML(comboQuery)+'".<br>Add it yourself below.'))+'</div>';
     }
   } else if(gamesPending){
-    html+='<div class="combo-note">Looking for your games&#8230;</div>';
+    html+='<div class="combo-note">' + (isEs ? 'Buscando tus juegos&#8230;' : 'Looking for your games&#8230;') + '</div>';
   }
 
   results.innerHTML=html;
@@ -1479,10 +1500,10 @@ function renderCombo(){
 // user wants a profile for is very often the one they just alt-tabbed out of,
 // and this asks them to know nothing about where it was installed.
 function runningHTML(){
-  var html='<div class="combo-back" onclick="closeRunning()">&#8592; Back</div>'
-          +'<div class="combo-section-label">RUNNING NOW</div>';
+  var html='<div class="combo-back" onclick="closeRunning()">&#8592; ' + (isEs ? 'Volver' : 'Back') + '</div>'
+          +'<div class="combo-section-label">' + (isEs ? 'EN EJECUCIÓN AHORA' : 'RUNNING NOW') + '</div>';
   if(!RUNNING.length)
-    return html+'<div class="combo-empty">Nothing else is running that we can see.</div>';
+    return html+'<div class="combo-empty">' + (isEs ? 'No hay nada más en ejecución detectable.' : 'Nothing else is running that we can see.') + '</div>';
   html+='<div class="combo-list">';
   RUNNING.forEach(function(a){
     // The executable name is shown as well as the friendly one: two windows
@@ -1494,7 +1515,7 @@ function runningHTML(){
 }
 function itemHTML(id,name,missing){
   var cls='combo-item'+(id===currentGame?' active':'');
-  var badge=missing?'<span class="combo-badge">NOT INSTALLED</span>':'';
+  var badge=missing ? ('<span class="combo-badge">' + (isEs ? 'NO INSTALADO' : 'NOT INSTALLED') + '</span>') : '';
   return '<div class="'+cls+'" onclick="pickGame(\''+id+'\')">'+escapeHTML(name)+badge+'</div>';
 }
 function askRunningApps(){ postMsg({type:'listRunning'}); }
@@ -1556,7 +1577,7 @@ function fillSelect(id,options,value){
   options.forEach(function(o){
     var opt=document.createElement('option');
     opt.value=o.id;
-    opt.textContent=o.label;
+    opt.textContent=(isEs && o.labelEs) ? o.labelEs : o.label;
     sel.appendChild(opt);
   });
   sel.value=value;
@@ -1592,16 +1613,31 @@ function renderOffbar(){
   // saves on its own — and it does not; Apply does. A banner about one thing
   // being off is the wrong place to imply something else is automatic.
   if(controlManual){
-    text.innerHTML='<b>Steamless mode is off.</b> Nothing on this page is '+
-                   'driving your controller yet - the trackpads, paddles '+
-                   'and buttons below take effect once it is on.';
-    if(btn) btn.style.display='';
+    if(isEs){
+      text.innerHTML='<b>El modo Steamless está desactivado.</b> Nada en esta página está '+
+                     'controlando tu mando todavía: los trackpads, palancas traseras '+
+                     'y botones de abajo surtirán efecto una vez esté activado.';
+    }else{
+      text.innerHTML='<b>Steamless mode is off.</b> Nothing on this page is '+
+                     'driving your controller yet - the trackpads, paddles '+
+                     'and buttons below take effect once it is on.';
+    }
+    if(btn){
+      btn.style.display='';
+      btn.textContent=isEs ? 'Activar' : 'Enable';
+    }
   }else{
     // Not ours to switch on: an auto mode owns the decision, and a button here
     // would either lie or fight it a moment later.
-    text.innerHTML='<b>Steamless mode is off right now.</b> Control Mode is set '+
-                   'to one of the automatic options, so it turns on by itself '+
-                   'when the conditions are met. Settings below take effect then.';
+    if(isEs){
+      text.innerHTML='<b>El modo Steamless está desactivado ahora mismo.</b> El modo de control está configurado '+
+                     'en una opción automática, por lo que se activa solo '+
+                     'cuando se cumplen las condiciones. Los ajustes de abajo surtirán efecto entonces.';
+    }else{
+      text.innerHTML='<b>Steamless mode is off right now.</b> Control Mode is set '+
+                     'to one of the automatic options, so it turns on by itself '+
+                     'when the conditions are met. Settings below take effect then.';
+    }
     if(btn) btn.style.display='none';
   }
 }
@@ -1626,7 +1662,12 @@ function renderInherit(){
   // Says why this game is reachable at all when it is not on the PC, and that
   // its profile is being kept rather than quietly ignored.
   var miss=document.getElementById('missing-note');
-  if(miss) miss.style.display=(currentGame!==''&&gameMissing(currentGame))?'':'none';
+  if(miss){
+    miss.style.display=(currentGame!==''&&gameMissing(currentGame))?'':'none';
+    miss.textContent = isEs
+      ? "Este juego no se encontró en esta PC. Su perfil se conserva y volverá a funcionar si el juego regresa. Elimina esto si el juego no regresará."
+      : "This game wasn't found on this PC. Its profile is kept, and will start working again if the game comes back. Delete this if the game won't be coming back.";
+  }
 }
 function renderModeSelects(){
   renderInherit();
@@ -1963,8 +2004,8 @@ var TRIGGER_MODE_OPTIONS=getTriggerModeOptions();
 function getTriggerHapticOptions(){
   return [
     {id:'off',   label: isEs ? 'Desactivado' : 'Off'},
-    {id:'press', label: isEs ? 'Clic al presionar' : 'Click on press'},
-    {id:'both',  label: isEs ? 'Clic al presionar y soltar' : 'Click on press and release'},
+    {id:'press', label: isEs ? 'Click al presionar' : 'Click on press'},
+    {id:'both',  label: isEs ? 'Click al presionar y soltar' : 'Click on press and release'},
   ];
 }
 var TRIGGER_HAPTIC_OPTIONS=getTriggerHapticOptions();
@@ -3152,7 +3193,7 @@ void RemapWindow::Open(HINSTANCE hInst, ControllerManager* mgr,
     GetMonitorInfoW(MonitorFromPoint(cursor, MONITOR_DEFAULTTONEAREST), &mi);
 
     m_hwnd = CreateWindowExW(
-        0, CLASS_NAME, L"Customize Controls",
+        0, CLASS_NAME, I18n::Text(TextId::CustomizeControls),
         WS_POPUP | WS_THICKFRAME | WS_SYSMENU | WS_MINIMIZEBOX,
         mi.rcWork.left, mi.rcWork.top, WINDOW_W, WINDOW_H,
         nullptr, nullptr, hInst, nullptr);
@@ -3567,6 +3608,9 @@ void RemapWindow::OnWebMessage(const std::wstring& raw) {
             int v = std::atoi(valStr.c_str());
             if (v >= 0 && v <= 1) {
                 I18n::SetSetting(static_cast<Language>(v));
+                if (m_hwnd) {
+                    SetWindowTextW(m_hwnd, I18n::Text(TextId::CustomizeControls));
+                }
                 SendInitState();
             }
         }
