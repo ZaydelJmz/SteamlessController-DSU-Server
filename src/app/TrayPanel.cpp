@@ -864,15 +864,14 @@ struct TrayPanel::Impl : PanelAccessibility::Host {
                  D2D1::RectF(lo.row[i].left + 12.f, lo.row[i].top, lo.row[i].right - 60.f, lo.row[i].bottom),
                  14.f, DWRITE_FONT_WEIGHT_REGULAR, kText);
             if (lo.rowAct[i] == Action::Language) {
-                const float bw = 50.f;
+                const float bw = 42.f;
                 const float bx = lo.row[i].right - 8.f - bw;
                 const float by = (lo.row[i].top + lo.row[i].bottom) * 0.5f - 11.f;
                 D2D1_RECT_F bRect = D2D1::RectF(bx, by, bx + bw, by + 22.f);
                 Fill(bRect, 6.f, kInset);
                 Outline(bRect, 6.f, kBorder, 0.6f, 1.f);
                 Language s = I18n::GetSetting();
-                const wchar_t* langCode = (s == Language::Auto) ? L"Auto" :
-                                          (s == Language::Spanish) ? L"ES" : L"EN";
+                const wchar_t* langCode = (s == Language::Spanish) ? L"ES" : L"EN";
                 Text(langCode, bRect, 11.5f, DWRITE_FONT_WEIGHT_SEMI_BOLD, kAccent, 1.f, false,
                      DWRITE_TEXT_ALIGNMENT_CENTER);
             } else {

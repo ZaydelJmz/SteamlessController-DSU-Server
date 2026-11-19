@@ -2251,10 +2251,7 @@ void TrayApp::OnPanelAction(TrayPanel::Action action) {
     case TrayPanel::Action::Startup:        id = IDM_STARTUP;          break;
     case TrayPanel::Action::Notifications:  id = IDM_NOTIFICATIONS;    break;
     case TrayPanel::Action::Language: {
-        Language cur = I18n::GetSetting();
-        Language next = (cur == Language::Auto) ? Language::English :
-                        (cur == Language::English) ? Language::Spanish : Language::Auto;
-        I18n::SetSetting(next);
+        I18n::ToggleSetting();
         m_panel.Refresh(true);
         break;
     }

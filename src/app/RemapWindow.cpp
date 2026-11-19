@@ -363,9 +363,8 @@ R"HTML(
         <span class="pos-label">Language / Idioma</span>
         <div class="connector"></div>
         <select id="language-select" class="mode-select">
-          <option value="0">Auto (Windows)</option>
-          <option value="1">English</option>
-          <option value="2">Español</option>
+          <option value="0">English</option>
+          <option value="1">Español</option>
         </select>
       </div>
     </div>
@@ -375,24 +374,24 @@ R"HTML(
     <section class="pane" id="pane-lpad">
       <div class="pane-head"><h2>Left Trackpad</h2><p>What the pad does, and what each press sends to the game. Click <b>Rebind</b>, then press any gamepad button, key or mouse button.</p></div>
   <div class="group solo">
-    <div class="group-label">LEFT TRACKPAD</div>
+    <div class="group-label" id="gl-lpad">LEFT TRACKPAD</div>
     <div class="row mode-row">
       <div class="row-top">
-        <span class="pos-label">Movement Mode</span>
+        <span class="pos-label lbl-move-mode">Movement Mode</span>
         <div class="connector"></div>
         <select id="mode-LPAD" class="mode-select"></select>
       </div>
     </div>
     <div class="row mode-row" id="dir-row-LPAD">
       <div class="row-top">
-        <span class="pos-label">Scroll Direction</span>
+        <span class="pos-label lbl-scroll-dir">Scroll Direction</span>
         <div class="connector"></div>
         <select id="dir-LPAD" class="mode-select"></select>
       </div>
     </div>
     <div class="row mode-row" id="speed-row-LPAD">
       <div class="row-top">
-        <span class="pos-label">Speed</span>
+        <span class="pos-label lbl-speed">Speed</span>
         <div class="connector"></div>
         <div class="speed-wrap">
           <input type="range" id="speed-LPAD" class="speed-slider">
@@ -402,14 +401,14 @@ R"HTML(
     </div>
     <div class="row mode-row" id="diag-row-LPAD">
       <div class="row-top">
-        <span class="pos-label">Diagonals</span>
+        <span class="pos-label lbl-diags">Diagonals</span>
         <div class="connector"></div>
         <select id="diag-LPAD" class="mode-select"></select>
       </div>
     </div>
     <div class="row mode-row" id="haptic-row-LPAD">
       <div class="row-top">
-        <span class="pos-label">Movement Haptics</span>
+        <span class="pos-label lbl-move-haptics">Movement Haptics</span>
         <div class="connector"></div>
         <select id="haptic-LPAD" class="mode-select"></select>
       </div>
@@ -426,24 +425,24 @@ R"HTML(
     <section class="pane" id="pane-rpad">
       <div class="pane-head"><h2>Right Trackpad</h2><p>What the pad does, and what each press sends to the game. Click <b>Rebind</b>, then press any gamepad button, key or mouse button.</p></div>
   <div class="group solo">
-    <div class="group-label">RIGHT TRACKPAD</div>
+    <div class="group-label" id="gl-rpad">RIGHT TRACKPAD</div>
     <div class="row mode-row">
       <div class="row-top">
-        <span class="pos-label">Movement Mode</span>
+        <span class="pos-label lbl-move-mode">Movement Mode</span>
         <div class="connector"></div>
         <select id="mode-RPAD" class="mode-select"></select>
       </div>
     </div>
     <div class="row mode-row" id="dir-row-RPAD">
       <div class="row-top">
-        <span class="pos-label">Scroll Direction</span>
+        <span class="pos-label lbl-scroll-dir">Scroll Direction</span>
         <div class="connector"></div>
         <select id="dir-RPAD" class="mode-select"></select>
       </div>
     </div>
     <div class="row mode-row" id="speed-row-RPAD">
       <div class="row-top">
-        <span class="pos-label">Speed</span>
+        <span class="pos-label lbl-speed">Speed</span>
         <div class="connector"></div>
         <div class="speed-wrap">
           <input type="range" id="speed-RPAD" class="speed-slider">
@@ -453,14 +452,14 @@ R"HTML(
     </div>
     <div class="row mode-row" id="diag-row-RPAD">
       <div class="row-top">
-        <span class="pos-label">Diagonals</span>
+        <span class="pos-label lbl-diags">Diagonals</span>
         <div class="connector"></div>
         <select id="diag-RPAD" class="mode-select"></select>
       </div>
     </div>
     <div class="row mode-row" id="haptic-row-RPAD">
       <div class="row-top">
-        <span class="pos-label">Movement Haptics</span>
+        <span class="pos-label lbl-move-haptics">Movement Haptics</span>
         <div class="connector"></div>
         <select id="haptic-RPAD" class="mode-select"></select>
       </div>
@@ -480,17 +479,17 @@ R"HTML(
     <section class="pane" id="pane-triggers">
       <div class="pane-head"><h2>Triggers</h2><p>Pull a trigger to watch it move. Dual Stage adds a second button at the end of the pull.</p></div>
   <div class="group">
-    <div class="group-label">LEFT TRIGGER</div>
+    <div class="group-label" id="gl-ltrig">LEFT TRIGGER</div>
     <div class="row mode-row">
       <div class="row-top">
-        <span class="pos-label">Trigger Mode</span>
+        <span class="pos-label lbl-trigger-mode">Trigger Mode</span>
         <div class="connector"></div>
         <select id="tmode-LT" class="mode-select"></select>
       </div>
     </div>
     <div class="row mode-row" id="meter-row-LT">
       <div class="row-top">
-        <span class="pos-label">Full-Press Point</span>
+        <span class="pos-label lbl-full-press">Full-Press Point</span>
         <div class="connector"></div>
         <div class="meter-wrap">
           <div class="meter" id="meter-LT">
@@ -507,24 +506,24 @@ R"HTML(
     <div id="row-LTfull" class="row"></div>
     <div class="row mode-row" id="haptic-row-LT">
       <div class="row-top">
-        <span class="pos-label">Click Feel</span>
+        <span class="pos-label lbl-click-feel">Click Feel</span>
         <div class="connector"></div>
         <select id="thaptic-LT" class="mode-select"></select>
       </div>
     </div>
   </div>
   <div class="group">
-    <div class="group-label">RIGHT TRIGGER</div>
+    <div class="group-label" id="gl-rtrig">RIGHT TRIGGER</div>
     <div class="row mode-row">
       <div class="row-top">
-        <span class="pos-label">Trigger Mode</span>
+        <span class="pos-label lbl-trigger-mode">Trigger Mode</span>
         <div class="connector"></div>
         <select id="tmode-RT" class="mode-select"></select>
       </div>
     </div>
     <div class="row mode-row" id="meter-row-RT">
       <div class="row-top">
-        <span class="pos-label">Full-Press Point</span>
+        <span class="pos-label lbl-full-press">Full-Press Point</span>
         <div class="connector"></div>
         <div class="meter-wrap">
           <div class="meter" id="meter-RT">
@@ -541,7 +540,7 @@ R"HTML(
     <div id="row-RTfull" class="row"></div>
     <div class="row mode-row" id="haptic-row-RT">
       <div class="row-top">
-        <span class="pos-label">Click Feel</span>
+        <span class="pos-label lbl-click-feel">Click Feel</span>
         <div class="connector"></div>
         <select id="thaptic-RT" class="mode-select"></select>
       </div>
@@ -551,17 +550,17 @@ R"HTML(
     <section class="pane" id="pane-buttons">
       <div class="pane-head"><h2>Buttons</h2><p>The four grips and the Quick Access (&hellip;) button between the trackpads. Click <b>Rebind</b>, then press any gamepad button, any key, or your mouse's middle or thumb buttons. Pick <b>Off</b> to stop a button doing anything at all.</p></div>
   <div class="group">
-    <div class="group-label">LEFT GRIP</div>
+    <div class="group-label" id="gl-lgrip">LEFT GRIP</div>
     <div id="row-L4" class="row"></div>
     <div id="row-L5" class="row"></div>
   </div>
   <div class="group">
-    <div class="group-label">RIGHT GRIP</div>
+    <div class="group-label" id="gl-rgrip">RIGHT GRIP</div>
     <div id="row-R4" class="row"></div>
     <div id="row-R5" class="row"></div>
   </div>
   <div class="group">
-    <div class="group-label">CENTER</div>
+    <div class="group-label" id="gl-center">CENTER</div>
     <div id="row-QAM" class="row"></div>
   </div>
     </section>
@@ -569,10 +568,10 @@ R"HTML(
     <section class="pane" id="pane-sticks">
       <div class="pane-head"><h2>Sticks</h2><p>Where each stick starts and stops responding. Drag inside a preview to try a position.</p></div>
   <div class="group">
-    <div class="group-label">LEFT STICK</div>
+    <div class="group-label" id="gl-lstick">LEFT STICK</div>
     <div class="row mode-row">
       <div class="row-top">
-        <span class="pos-label">Deadzone</span>
+        <span class="pos-label lbl-deadzone">Deadzone</span>
         <div class="connector"></div>
         <select id="smode-LS" class="mode-select"></select>
       </div>
@@ -605,10 +604,10 @@ R"HTML(
     </div>
   </div>
   <div class="group">
-    <div class="group-label">RIGHT STICK</div>
+    <div class="group-label" id="gl-rstick">RIGHT STICK</div>
     <div class="row mode-row">
       <div class="row-top">
-        <span class="pos-label">Deadzone</span>
+        <span class="pos-label lbl-deadzone">Deadzone</span>
         <div class="connector"></div>
         <select id="smode-RS" class="mode-select"></select>
       </div>
@@ -742,27 +741,36 @@ var useDefault = false;
 // re-labels the moment the platform dropdown above it changes.
 function modeOptions(){
   return [
-    {id:'none',    label:'None'},
-    {id:'pointer', label:'Mouse Pointer'},
-    {id:'scroll',  label:'Scroll Wheel'},
-    {id:'ds4',     label:(platform==='ps'||platform==='ps5')?'PlayStation Touchpad'
-                                        :'PlayStation Touchpad (PlayStation only)'},
-    {id:'dpad',    label:'Directional Pad'},
-    {id:'button',  label:'Single Button'},
+    {id:'none',    label: isEs ? 'Ninguno (Desactivado)' : 'None'},
+    {id:'pointer', label: isEs ? 'Puntero de ratón' : 'Mouse Pointer'},
+    {id:'scroll',  label: isEs ? 'Rueda de desplazamiento' : 'Scroll Wheel'},
+    {id:'ds4',     label: isEs ? ((platform==='ps'||platform==='ps5')?'Touchpad de PlayStation':'Touchpad de PlayStation (Solo PlayStation)')
+                               : ((platform==='ps'||platform==='ps5')?'PlayStation Touchpad':'PlayStation Touchpad (PlayStation only)')},
+    {id:'dpad',    label: isEs ? 'Cruceta direccional' : 'Directional Pad'},
+    {id:'button',  label: isEs ? 'Botón individual' : 'Single Button'},
   ];
 }
-var DIR_OPTIONS = [
-  {id:'natural',  label:'Natural'},
-  {id:'reversed', label:'Reversed'},
-];
-var DIAG_OPTIONS = [
-  {id:'eight', label:'8-way (press two at once)'},
-  {id:'four',  label:'4-way (one at a time)'},
-];
-var HAPTIC_OPTIONS = [
-  {id:'on',  label:'Enabled'},
-  {id:'off', label:'Disabled'},
-];
+function getDirOptions(){
+  return [
+    {id:'natural',  label: isEs ? 'Natural' : 'Natural'},
+    {id:'reversed', label: isEs ? 'Invertido' : 'Reversed'},
+  ];
+}
+var DIR_OPTIONS = getDirOptions();
+function getDiagOptions(){
+  return [
+    {id:'eight', label: isEs ? '8 direcciones (pulsar dos a la vez)' : '8-way (press two at once)'},
+    {id:'four',  label: isEs ? '4 direcciones (una a la vez)' : '4-way (one at a time)'},
+  ];
+}
+var DIAG_OPTIONS = getDiagOptions();
+function getHapticOptions(){
+  return [
+    {id:'on',  label: isEs ? 'Activado' : 'Enabled'},
+    {id:'off', label: isEs ? 'Desactivado' : 'Disabled'},
+  ];
+}
+var HAPTIC_OPTIONS = getHapticOptions();
 var PLATFORM_OPTIONS = [
   {id:'xbox',   label:'Xbox 360 (XInput Controller)'},
   {id:'ps',     label:'PlayStation 4 (DualShock 4)'},
@@ -858,54 +866,54 @@ function psGlyph(shape){
          'stroke-linejoin="round">'+shape+'</svg>';
 }
 var INPUTS = [
-  // The face buttons carry a PlayStation face of their own, shown instead when
-  // the profile's platform is PlayStation. The ids are the same either way —
-  // they are what is stored — so only what the user sees changes. The colours
-  // are the symbols' own, as the Xbox ones are the letters'.
-  {id:'A',         glyph:'A',      label:'A Button',    bg:'#5ba32b',fg:'#fff',
+  {id:'A',         glyph:'A',      label:'A Button', labelEs:'Botón A', bg:'#5ba32b',fg:'#fff',
    ps:{glyph:psGlyph('<path d="M6 6l12 12M18 6L6 18"/>'),
-       label:'Cross',bg:'#3f74c9',fg:'#fff'}},
-  {id:'B',         glyph:'B',      label:'B Button',    bg:'#c0392b',fg:'#fff',
+       label:'Cross', labelEs:'Cruz', bg:'#3f74c9',fg:'#fff'}},
+  {id:'B',         glyph:'B',      label:'B Button', labelEs:'Botón B', bg:'#c0392b',fg:'#fff',
    ps:{glyph:psGlyph('<circle cx="12" cy="12" r="7.5"/>'),
-       label:'Circle',bg:'#d2453b',fg:'#fff'}},
-  {id:'X',         glyph:'X',      label:'X Button',    bg:'#2b7fc0',fg:'#fff',
+       label:'Circle', labelEs:'Círculo', bg:'#d2453b',fg:'#fff'}},
+  {id:'X',         glyph:'X',      label:'X Button', labelEs:'Botón X', bg:'#2b7fc0',fg:'#fff',
    ps:{glyph:psGlyph('<rect x="5" y="5" width="14" height="14" rx="1"/>'),
-       label:'Square',bg:'#c25c9f',fg:'#fff'}},
-  {id:'Y',         glyph:'Y',      label:'Y Button',    bg:'#c9a227',fg:'#211a04',
+       label:'Square', labelEs:'Cuadrado', bg:'#c25c9f',fg:'#fff'}},
+  {id:'Y',         glyph:'Y',      label:'Y Button', labelEs:'Botón Y', bg:'#c9a227',fg:'#211a04',
    ps:{glyph:psGlyph('<path d="M12 4.5l8 14H4z"/>'),
-       label:'Triangle',bg:'#2f9e74',fg:'#fff'}},
-  {id:'LB',        glyph:'L1',     label:'L1 Bumper',   bg:'#37485a',fg:'#cdd9e3'},
-  {id:'LT',        glyph:'L2',     label:'L2 Trigger',  bg:'#37485a',fg:'#cdd9e3'},
-  {id:'RB',        glyph:'R1',     label:'R1 Bumper',   bg:'#37485a',fg:'#cdd9e3'},
-  {id:'RT',        glyph:'R2',     label:'R2 Trigger',  bg:'#37485a',fg:'#cdd9e3'},
-  {id:'Up',        glyph:'&#x2191;', label:'D-Pad Up',    bg:'#2a3f57',fg:'#cdd9e3'},
-  {id:'Down',      glyph:'&#x2193;', label:'D-Pad Down',  bg:'#2a3f57',fg:'#cdd9e3'},
-  {id:'Left',      glyph:'&#x2190;', label:'D-Pad Left',  bg:'#2a3f57',fg:'#cdd9e3'},
-  {id:'Right',     glyph:'&#x2192;', label:'D-Pad Right', bg:'#2a3f57',fg:'#cdd9e3'},
-  {id:'leftMouse', glyph:'LMB',     label:'Left Click',  bg:'#3a2a5a',fg:'#c9b8f0'},
-  {id:'rightMouse',glyph:'RMB',     label:'Right Click', bg:'#3a2a5a',fg:'#c9b8f0'},
-  {id:'mouse:middle',glyph:'MMB',   label:'Middle Click',bg:'#3a2a5a',fg:'#c9b8f0'},
-  {id:'mouse:x1',  glyph:'M4',      label:'Mouse 4',     bg:'#3a2a5a',fg:'#c9b8f0'},
-  {id:'mouse:x2',  glyph:'M5',      label:'Mouse 5',     bg:'#3a2a5a',fg:'#c9b8f0'},
-  {id:'menu',      glyph:'MNU',     label:'Menu',        bg:'#2a3a2a',fg:'#9ac89a',
-   ps:{glyph:'OPT',label:'Options',bg:'#2a3a2a',fg:'#9ac89a'}},
-  {id:'view',      glyph:'VEW',     label:'View',        bg:'#2a3a2a',fg:'#9ac89a',
-   ps:{glyph:'SHR',label:'Share',bg:'#2a3a2a',fg:'#9ac89a'}},
-  {id:'L3',        glyph:'L3',      label:'L3 Stick',    bg:'#37485a',fg:'#cdd9e3'},
-  {id:'R3',        glyph:'R3',      label:'R3 Stick',    bg:'#37485a',fg:'#cdd9e3'},
-  {id:'touchKeyboard',glyph:'KBD',  label:'Touch Keyboard',bg:'#2a3a2a',fg:'#9ac89a'},
-  {id:'guide',     glyph:'GDE',     label:'Guide Button',bg:'#2a3a2a',fg:'#9ac89a',
-   ps:{glyph:'PS',label:'PS Button',bg:'#2a3a2a',fg:'#9ac89a'}},
-  {id:'touchpadClick',glyph:'TPC',  label:'PlayStation Touchpad Click',bg:'#2a3a2a',fg:'#9ac89a'},
-  {id:'none',      glyph:'OFF',     label:'Off',         bg:'#1e2d3d',fg:'#5a7a9a'},
+       label:'Triangle', labelEs:'Triángulo', bg:'#2f9e74',fg:'#fff'}},
+  {id:'LB',        glyph:'L1',     label:'L1 Bumper', labelEs:'Botón L1', bg:'#37485a',fg:'#cdd9e3'},
+  {id:'LT',        glyph:'L2',     label:'L2 Trigger', labelEs:'Gatillo L2', bg:'#37485a',fg:'#cdd9e3'},
+  {id:'RB',        glyph:'R1',     label:'R1 Bumper', labelEs:'Botón R1', bg:'#37485a',fg:'#cdd9e3'},
+  {id:'RT',        glyph:'R2',     label:'R2 Trigger', labelEs:'Gatillo R2', bg:'#37485a',fg:'#cdd9e3'},
+  {id:'Up',        glyph:'&#x2191;', label:'D-Pad Up', labelEs:'Cruceta Arriba', bg:'#2a3f57',fg:'#cdd9e3'},
+  {id:'Down',      glyph:'&#x2193;', label:'D-Pad Down', labelEs:'Cruceta Abajo', bg:'#2a3f57',fg:'#cdd9e3'},
+  {id:'Left',      glyph:'&#x2190;', label:'D-Pad Left', labelEs:'Cruceta Izquierda', bg:'#2a3f57',fg:'#cdd9e3'},
+  {id:'Right',     glyph:'&#x2192;', label:'D-Pad Right', labelEs:'Cruceta Derecha', bg:'#2a3f57',fg:'#cdd9e3'},
+  {id:'leftMouse', glyph:'LMB',     label:'Left Click', labelEs:'Clic Izquierdo', bg:'#3a2a5a',fg:'#c9b8f0'},
+  {id:'rightMouse',glyph:'RMB',     label:'Right Click', labelEs:'Clic Derecho', bg:'#3a2a5a',fg:'#c9b8f0'},
+  {id:'mouse:middle',glyph:'MMB',   label:'Middle Click', labelEs:'Clic Central', bg:'#3a2a5a',fg:'#c9b8f0'},
+  {id:'mouse:x1',  glyph:'M4',      label:'Mouse 4', labelEs:'Ratón 4', bg:'#3a2a5a',fg:'#c9b8f0'},
+  {id:'mouse:x2',  glyph:'M5',      label:'Mouse 5', labelEs:'Ratón 5', bg:'#3a2a5a',fg:'#c9b8f0'},
+  {id:'menu',      glyph:'MNU',     label:'Menu', labelEs:'Menú', bg:'#2a3a2a',fg:'#9ac89a',
+   ps:{glyph:'OPT',label:'Options', labelEs:'Opciones', bg:'#2a3a2a',fg:'#9ac89a'}},
+  {id:'view',      glyph:'VEW',     label:'View', labelEs:'Vista', bg:'#2a3a2a',fg:'#9ac89a',
+   ps:{glyph:'SHR',label:'Share', labelEs:'Compartir', bg:'#2a3a2a',fg:'#9ac89a'}},
+  {id:'L3',        glyph:'L3',      label:'L3 Stick', labelEs:'Stick L3', bg:'#37485a',fg:'#cdd9e3'},
+  {id:'R3',        glyph:'R3',      label:'R3 Stick', labelEs:'Stick R3', bg:'#37485a',fg:'#cdd9e3'},
+  {id:'touchKeyboard',glyph:'KBD',  label:'Touch Keyboard', labelEs:'Teclado en Pantalla', bg:'#2a3a2a',fg:'#9ac89a'},
+  {id:'guide',     glyph:'GDE',     label:'Guide Button', labelEs:'Botón Guía', bg:'#2a3a2a',fg:'#9ac89a',
+   ps:{glyph:'PS',label:'PS Button', labelEs:'Botón PS', bg:'#2a3a2a',fg:'#9ac89a'}},
+  {id:'touchpadClick',glyph:'TPC',  label:'PlayStation Touchpad Click', labelEs:'Clic Touchpad PlayStation', bg:'#2a3a2a',fg:'#9ac89a'},
+  {id:'none',      glyph:'OFF',     label:'Off', labelEs:'Desactivado', bg:'#1e2d3d',fg:'#5a7a9a'},
 ];
 var byId = {};
 INPUTS.forEach(function(t){byId[t.id]=t;});
-// What an input looks like on the platform being edited. Looked up at render
-// time rather than baked into the catalog, so switching platform only has to
-// render again.
 function viewOf(t){
-  return ((platform==='ps'||platform==='ps5')&&t.ps)?t.ps:t;
+  var res = ((platform==='ps'||platform==='ps5')&&t.ps)?t.ps:t;
+  if(isEs && (res.labelEs || t.labelEs)){
+    var copy = {};
+    for(var k in res) copy[k]=res[k];
+    copy.label = res.labelEs || t.labelEs;
+    return copy;
+  }
+  return res;
 }
 
 // Picker layout: each inner array is one row in the manual-pick panel.
@@ -921,23 +929,23 @@ var PICKER_ROWS = [
 // Every rebindable row, trackpad clicks included — they are the same kind of
 // thing as a paddle and go through the identical rebind/capture flow.
 var ROWS = [
-  {id:'L4',posTag:'UPPER',posLabel:'Upper grip'},
-  {id:'L5',posTag:'LOWER',posLabel:'Lower grip'},
-  {id:'R4',posTag:'UPPER',posLabel:'Upper grip'},
-  {id:'R5',posTag:'LOWER',posLabel:'Lower grip'},
-  {id:'QAM',badge:'&hellip;',posTag:'MENU',posLabel:'Quick Access (...)'},
-  {id:'LPAD',badge:'L',posTag:'PAD',posLabel:'Trackpad Click'},
-  {id:'RPAD',badge:'R',posTag:'PAD',posLabel:'Trackpad Click'},
-  {id:'LPADtouch',badge:'L',posTag:'TAP',posLabel:'Trackpad Tap'},
-  {id:'RPADtouch',badge:'R',posTag:'TAP',posLabel:'Trackpad Tap'},
-  {id:'LPADup',   badge:'L',posTag:'UP',   posLabel:'Up'},
-  {id:'LPADdown', badge:'L',posTag:'DOWN', posLabel:'Down'},
-  {id:'LPADleft', badge:'L',posTag:'LEFT', posLabel:'Left'},
-  {id:'LPADright',badge:'L',posTag:'RIGHT',posLabel:'Right'},
-  {id:'RPADup',   badge:'R',posTag:'UP',   posLabel:'Up'},
-  {id:'RPADdown', badge:'R',posTag:'DOWN', posLabel:'Down'},
-  {id:'RPADleft', badge:'R',posTag:'LEFT', posLabel:'Left'},
-  {id:'RPADright',badge:'R',posTag:'RIGHT',posLabel:'Right'},
+  {id:'L4',posTag:'UPPER',posTagEs:'SUPERIOR',posLabel:'Upper grip',posLabelEs:'Agarre superior'},
+  {id:'L5',posTag:'LOWER',posTagEs:'INFERIOR',posLabel:'Lower grip',posLabelEs:'Agarre inferior'},
+  {id:'R4',posTag:'UPPER',posTagEs:'SUPERIOR',posLabel:'Upper grip',posLabelEs:'Agarre superior'},
+  {id:'R5',posTag:'LOWER',posTagEs:'INFERIOR',posLabel:'Lower grip',posLabelEs:'Agarre inferior'},
+  {id:'QAM',badge:'&hellip;',posTag:'MENU',posTagEs:'MENÚ',posLabel:'Quick Access (...)',posLabelEs:'Acceso Rápido (...)'},
+  {id:'LPAD',badge:'L',posTag:'PAD',posTagEs:'PAD',posLabel:'Trackpad Click',posLabelEs:'Clic de Trackpad'},
+  {id:'RPAD',badge:'R',posTag:'PAD',posTagEs:'PAD',posLabel:'Trackpad Click',posLabelEs:'Clic de Trackpad'},
+  {id:'LPADtouch',badge:'L',posTag:'TAP',posTagEs:'TOQUE',posLabel:'Trackpad Tap',posLabelEs:'Toque de Trackpad'},
+  {id:'RPADtouch',badge:'R',posTag:'TAP',posTagEs:'TOQUE',posLabel:'Trackpad Tap',posLabelEs:'Toque de Trackpad'},
+  {id:'LPADup',   badge:'L',posTag:'UP',   posTagEs:'ARRIBA', posLabel:'Up',   posLabelEs:'Arriba'},
+  {id:'LPADdown', badge:'L',posTag:'DOWN', posTagEs:'ABAJO',  posLabel:'Down', posLabelEs:'Abajo'},
+  {id:'LPADleft', badge:'L',posTag:'LEFT', posTagEs:'IZQ',    posLabel:'Left', posLabelEs:'Izquierda'},
+  {id:'LPADright',badge:'L',posTag:'RIGHT',posTagEs:'DER',    posLabel:'Right',posLabelEs:'Derecha'},
+  {id:'RPADup',   badge:'R',posTag:'UP',   posTagEs:'ARRIBA', posLabel:'Up',   posLabelEs:'Arriba'},
+  {id:'RPADdown', badge:'R',posTag:'DOWN', posTagEs:'ABAJO',  posLabel:'Down', posLabelEs:'Abajo'},
+  {id:'RPADleft', badge:'R',posTag:'LEFT', posTagEs:'IZQ',    posLabel:'Left', posLabelEs:'Izquierda'},
+  {id:'RPADright',badge:'R',posTag:'RIGHT',posTagEs:'DER',    posLabel:'Right',posLabelEs:'Derecha'},
 ];
 // The pads, and the dropdown id each one's Movement Mode lives in.
 var PADS = ['LPAD','RPAD'];
@@ -965,29 +973,124 @@ function postMsg(obj){
   if(window.chrome&&window.chrome.webview)
     window.chrome.webview.postMessage(JSON.stringify(obj));
 }
+)HTML"
+R"HTML(
+var isEs = false;
 function applyLanguage(lang){
-  var isEs=(lang==='es');
-  var setT=function(sel,text){var el=document.querySelector(sel);if(el)el.textContent=text;};
+  isEs = (lang === 'es');
+  var setT = function(sel, text){
+    var el = document.querySelector(sel);
+    if(el) el.textContent = text;
+  };
+  var setAll = function(sel, text){
+    var els = document.querySelectorAll(sel);
+    for(var i=0; i<els.length; i++) els[i].textContent = text;
+  };
+
+  // Rail
   setT('#rail-general .ri-title', 'General');
-  setT('#rail-lpad .ri-title', isEs?'Trackpad Izquierdo':'Left Trackpad');
-  setT('#rail-rpad .ri-title', isEs?'Trackpad Derecho':'Right Trackpad');
-  setT('#rail-triggers .ri-title', isEs?'Gatillos':'Triggers');
-  setT('#rail-buttons .ri-title', isEs?'Botones Traseros':'Buttons');
+  setT('#rail-lpad .ri-title', isEs ? 'Trackpad Izquierdo' : 'Left Trackpad');
+  setT('#rail-rpad .ri-title', isEs ? 'Trackpad Derecho' : 'Right Trackpad');
+  setT('#rail-triggers .ri-title', isEs ? 'Gatillos' : 'Triggers');
+  setT('#rail-buttons .ri-title', isEs ? 'Botones' : 'Buttons');
   setT('#rail-sticks .ri-title', 'Sticks');
 
+  // Headers
   setT('#pane-general .pane-head h2', 'General');
-  setT('#pane-general .pane-head p', isEs?'Qué mando ven tus juegos y la intensidad de la vibración.':'Which controller your games see, and how strongly it rumbles.');
-  setT('#pane-lpad .pane-head h2', isEs?'Trackpad Izquierdo':'Left Trackpad');
-  setT('#pane-rpad .pane-head h2', isEs?'Trackpad Derecho':'Right Trackpad');
-  setT('#pane-triggers .pane-head h2', isEs?'Gatillos':'Triggers');
-  setT('#pane-buttons .pane-head h2', isEs?'Botones Traseros':'Buttons');
+  setT('#pane-general .pane-head p', isEs ? 'Qué mando ven tus juegos y la intensidad de la vibración.' : 'Which controller your games see, and how strongly it rumbles.');
+  setT('#pane-lpad .pane-head h2', isEs ? 'Trackpad Izquierdo' : 'Left Trackpad');
+  setT('#pane-lpad .pane-head p', isEs ? 'Qué hace el pad y qué envía cada pulsación al juego. Haz clic en Reasignar para cambiar una acción.' : 'What the pad does, and what each press sends to the game. Click Rebind, then press any gamepad button, key or mouse button.');
+  setT('#pane-rpad .pane-head h2', isEs ? 'Trackpad Derecho' : 'Right Trackpad');
+  setT('#pane-rpad .pane-head p', isEs ? 'Qué hace el pad y qué envía cada pulsación al juego. Haz clic en Reasignar para cambiar una acción.' : 'What the pad does, and what each press sends to the game. Click Rebind, then press any gamepad button, key or mouse button.');
+  setT('#pane-triggers .pane-head h2', isEs ? 'Gatillos' : 'Triggers');
+  setT('#pane-triggers .pane-head p', isEs ? 'Presiona un gatillo para ver su recorrido. Doble Etapa añade un segundo botón al final del recorrido.' : 'Pull a trigger to watch it move. Dual Stage adds a second button at the end of the pull.');
+  setT('#pane-buttons .pane-head h2', isEs ? 'Botones' : 'Buttons');
+  setT('#pane-buttons .pane-head p', isEs ? 'Los cuatro agarres traseros y el botón de Acceso Rápido (…). Haz clic en Reasignar para cambiar una acción.' : 'The four grips and the Quick Access (…) button between the trackpads. Click Rebind, then press any gamepad button, any key, or your mouse\'s middle or thumb buttons. Pick Off to stop a button doing anything at all.');
   setT('#pane-sticks .pane-head h2', 'Sticks');
+  setT('#pane-sticks .pane-head p', isEs ? 'Dónde empieza y termina de responder cada stick. Arrastra dentro de la vista previa para probar una posición.' : 'Where each stick starts and stops responding. Drag inside a preview to try a position.');
 
-  setT('#pane-general .group-label', isEs?'AJUSTES GENERALES':'GENERAL SETTINGS');
-  setT('#platform-row .pos-label', isEs?'Plataforma del Mando':'Controller Platform');
-  setT('#touchpad-share-row .pos-label', isEs?'Mapear botón Back a Clic del Touchpad (PS4 / PS5)':'Map Back button to Touchpad Click (PS4 / PS5)');
-  setT('#rumble-row .pos-label', isEs?'Vibración':'Rumble');
-  setT('#language-row .pos-label', isEs?'Idioma':'Language / Idioma');
+  // Group labels
+  setT('#pane-general .group-label', isEs ? 'AJUSTES GENERALES' : 'GENERAL SETTINGS');
+  setT('#gl-lpad', isEs ? 'TRACKPAD IZQUIERDO' : 'LEFT TRACKPAD');
+  setT('#gl-rpad', isEs ? 'TRACKPAD DERECHO' : 'RIGHT TRACKPAD');
+  setT('#gl-ltrig', isEs ? 'GATILLO IZQUIERDO' : 'LEFT TRIGGER');
+  setT('#gl-rtrig', isEs ? 'GATILLO DERECHO' : 'RIGHT TRIGGER');
+  setT('#gl-lgrip', isEs ? 'AGARRE IZQUIERDO' : 'LEFT GRIP');
+  setT('#gl-rgrip', isEs ? 'AGARRE DERECHO' : 'RIGHT GRIP');
+  setT('#gl-center', isEs ? 'CENTRO' : 'CENTER');
+  setT('#gl-lstick', isEs ? 'STICK IZQUIERDO' : 'LEFT STICK');
+  setT('#gl-rstick', isEs ? 'STICK DERECHO' : 'RIGHT STICK');
+
+  // Pos labels
+  setT('#platform-row .pos-label', isEs ? 'Plataforma del Mando' : 'Controller Platform');
+  setT('#touchpad-share-row .pos-label', isEs ? 'Mapear botón Back a Clic del Touchpad (PS4 / PS5)' : 'Map Back button to Touchpad Click (PS4 / PS5)');
+  setT('#rumble-row .pos-label', isEs ? 'Vibración' : 'Rumble');
+  setT('#language-row .pos-label', isEs ? 'Idioma' : 'Language');
+  setAll('.lbl-move-mode', isEs ? 'Modo de Movimiento' : 'Movement Mode');
+  setAll('.lbl-scroll-dir', isEs ? 'Dirección de Desplazamiento' : 'Scroll Direction');
+  setAll('.lbl-speed', isEs ? 'Velocidad' : 'Speed');
+  setAll('.lbl-diags', isEs ? 'Diagonales' : 'Diagonals');
+  setAll('.lbl-move-haptics', isEs ? 'Hápticos de Movimiento' : 'Movement Haptics');
+  setAll('.lbl-trigger-mode', isEs ? 'Modo de Gatillo' : 'Trigger Mode');
+  setAll('.lbl-full-press', isEs ? 'Punto de Pulsación Completa' : 'Full-Press Point');
+  setAll('.lbl-click-feel', isEs ? 'Sensación de Clic' : 'Click Feel');
+  setAll('.lbl-deadzone', isEs ? 'Zona Muerta' : 'Deadzone');
+  setAll('.pad-note', isEs ? 'Presiona la parte exterior del pad para una dirección, o el centro para el clic.' : 'Press the outer part of the pad for a direction, or the middle for the trackpad click.');
+
+  // Trigger meters help and reset
+  var meterHelpHTML = isEs
+    ? '<span>Presiona el gatillo para verlo. Arrastra el <b>marcador brillante</b> para definir la pulsación completa y el tenue para soltar. El recorrido analógico sigue llegando al juego mientras se mantenga la pulsación completa.</span>'
+    : '<span>Pull the trigger to watch it. Drag the <b>bright marker</b> to set where the full press happens and the dim one to set where it lets go. The analog pull still reaches the game while the full press is held.</span>';
+  ['LT','RT'].forEach(function(t){
+    var mh = document.getElementById('meter-help-'+t);
+    if(mh){
+      var sp = mh.querySelector('span');
+      if(sp) sp.innerHTML = meterHelpHTML;
+      var rst = mh.querySelector('.btn-row-reset');
+      if(rst) rst.textContent = isEs ? 'Restablecer' : 'Reset';
+    }
+  });
+
+  // Stick legends, notes and reset
+  var stickLegendHTML = isEs
+    ? '<span><i style="background:#6b7785"></i>SIN SALIDA</span><span><i style="background:#66c0f4"></i>RAMPA DE SALIDA</span><span><i style="background:#1f5fbf"></i>SALIDA MÁX</span>'
+    : '<span><i style="background:#6b7785"></i>NO OUTPUT</span><span><i style="background:#66c0f4"></i>OUTPUT RAMP</span><span><i style="background:#1f5fbf"></i>MAX OUTPUT</span>';
+  ['LS','RS'].forEach(function(s){
+    var sl = document.querySelector('#sdetail-'+s+' .stick-legend');
+    if(sl) sl.innerHTML = stickLegendHTML;
+    var sw = document.getElementById('swarn-'+s);
+    if(sw) sw.textContent = isEs ? ' Por debajo de ~6% algunos mandos tienen deriva en reposo.' : ' Below about 6% some controllers drift while resting.';
+    var sr = document.getElementById('sreset-'+s);
+    if(sr) sr.textContent = isEs ? 'Restablecer' : 'Reset';
+  });
+
+  // Top Bar & inherit
+  setT('.cb-label', isEs ? 'APLICANDO A' : 'APPLYING TO');
+  setT('#inherit-label', isEs ? 'Usar mis mapeos por defecto' : 'Use my default mappings');
+  setT('#inherit-note', isEs
+    ? 'Este juego activa el mando y usa los controles de tu perfil por defecto, incluidos cambios futuros. Desmarca para darle a este juego controles propios.'
+    : 'This game turns the controller on and uses the controls from your default profile, including any later changes to it. Uncheck to give this game controls of its own.');
+
+  // Footer & modals
+  setT('#btn-reset', isEs ? 'Restablecer este perfil por defecto' : 'Reset this profile to default');
+  setT('#btn-delete', isEs ? 'Eliminar perfil' : 'Delete Profile');
+  setT('#dirty-note', isEs ? '<i></i>Cambios sin guardar' : '<i></i>Unsaved changes');
+  setT('#btn-discard', isEs ? 'Descartar' : 'Discard');
+  setT('#btn-apply', isEs ? 'Aplicar' : 'Apply');
+
+  setT('#modal-title', isEs ? 'Cambios sin guardar' : 'Unsaved changes');
+  setT('#modal-text', isEs ? 'Tienes cambios sin guardar en este perfil.' : 'You have unsaved changes to this profile.');
+  setT('#btn-modal-cancel', isEs ? 'Cancelar' : 'Cancel');
+  setT('#btn-modal-discard', isEs ? 'Descartar' : 'Discard');
+  setT('#btn-modal-save', isEs ? 'Guardar' : 'Save');
+  setT('#btn-modal-delete', isEs ? 'Eliminar' : 'Delete');
+
+  // Trigger full re-render of dynamic items
+  renderComboLabel();
+  renderModeSelects();
+  renderAll();
+  renderChrome();
+  renderOffbar();
 }
 if(window.chrome&&window.chrome.webview){
   window.chrome.webview.addEventListener('message',function(e){
@@ -1531,9 +1634,9 @@ function renderModeSelects(){
   var opts=modeOptions();
   PADS.forEach(function(padId){
     fillSelect('mode-'+padId,opts,modes[padId]);
-    fillSelect('dir-'+padId,DIR_OPTIONS,dirs[padId]);
-    fillSelect('diag-'+padId,DIAG_OPTIONS,diags[padId]);
-    fillSelect('haptic-'+padId,HAPTIC_OPTIONS,haptics[padId]);
+    fillSelect('dir-'+padId,getDirOptions(),dirs[padId]);
+    fillSelect('diag-'+padId,getDiagOptions(),diags[padId]);
+    fillSelect('haptic-'+padId,getHapticOptions(),haptics[padId]);
     var speedSel=document.getElementById('speed-'+padId);
     if(speedSel){
       // The slider travels over stop INDEXES, which is what makes the spacing
@@ -1847,19 +1950,23 @@ var TRIGGER_RAW_MAX=32767;
 // that was never saved.
 var TRIGGER_DEFAULT={mode:'standard',press:95,release:80,haptic:'both'};
 var TRIGGER_PRESS_MIN=20, TRIGGER_PRESS_MAX=100, TRIGGER_RELEASE_MIN=5, TRIGGER_GAP=3;
-var TRIGGER_MODE_OPTIONS=[
-  {id:'standard', label:'Standard (analog only)'},
-  {id:'dual',     label:'Dual Stage (adds a full-press button)'},
-];
-var TRIGGER_HAPTIC_OPTIONS=[
-  {id:'off',   label:'Off'},
-  {id:'press', label:'Click on press'},
-  {id:'both',  label:'Click on press and release'},
-];
-// The full press is an ordinary rebindable row, so it rides the same capture
-// flow, picker and profile plumbing as a paddle.
-ROWS.push({id:'LTfull',badge:'L',posTag:'FULL',posLabel:'Full Press'},
-          {id:'RTfull',badge:'R',posTag:'FULL',posLabel:'Full Press'});
+function getTriggerModeOptions(){
+  return [
+    {id:'standard', label: isEs ? 'Estándar (solo analógico)' : 'Standard (analog only)'},
+    {id:'dual',     label: isEs ? 'Doble etapa (añade botón a fondo)' : 'Dual Stage (adds a full-press button)'},
+  ];
+}
+var TRIGGER_MODE_OPTIONS=getTriggerModeOptions();
+function getTriggerHapticOptions(){
+  return [
+    {id:'off',   label: isEs ? 'Desactivado' : 'Off'},
+    {id:'press', label: isEs ? 'Clic al presionar' : 'Click on press'},
+    {id:'both',  label: isEs ? 'Clic al presionar y soltar' : 'Click on press and release'},
+  ];
+}
+var TRIGGER_HAPTIC_OPTIONS=getTriggerHapticOptions();
+ROWS.push({id:'LTfull',badge:'L',posTag:'FULL',posTagEs:'FONDO',posLabel:'Full Press',posLabelEs:'Pulsación a fondo'},
+          {id:'RTfull',badge:'R',posTag:'FULL',posTagEs:'FONDO',posLabel:'Full Press',posLabelEs:'Pulsación a fondo'});
 DEFAULTS.LTfull='none';
 DEFAULTS.RTfull='none';
 var tmodes={}, tpress={}, trelease={}, thaptic={};
@@ -1908,8 +2015,8 @@ function triggerFromProfile(p){
 // doing it on every change would reset the control under the user's hand.
 function renderTriggerSelects(){
   TRIGGERS.forEach(function(t){
-    fillSelect('tmode-'+t,TRIGGER_MODE_OPTIONS,tmodes[t]);
-    fillSelect('thaptic-'+t,TRIGGER_HAPTIC_OPTIONS,thaptic[t]);
+    fillSelect('tmode-'+t,getTriggerModeOptions(),tmodes[t]);
+    fillSelect('thaptic-'+t,getTriggerHapticOptions(),thaptic[t]);
   });
   renderTriggerRows();
 }
@@ -2144,6 +2251,8 @@ renderTouchpadShare();
   var lsel=document.getElementById('language-select');
   if(lsel){
     lsel.addEventListener('change',function(e){
+      var code = (e.target.value === '1') ? 'es' : 'en';
+      applyLanguage(code);
       postMsg({type:'setLanguage',value:e.target.value});
     });
   }
@@ -2156,11 +2265,14 @@ renderTouchpadShare();
 R"HTML(
 // ---- Stick deadzones ----
 var STICKS=['LS','RS'];
-var STICK_MODE_OPTIONS=[
-  {id:'default',label:'Default'},
-  {id:'circle', label:'Circle'},
-  {id:'square', label:'Square'},
-];
+function getStickModeOptions(){
+  return [
+    {id:'default', label: isEs ? 'Por defecto' : 'Default'},
+    {id:'circle',  label: isEs ? 'Círculo' : 'Circle'},
+    {id:'square',  label: isEs ? 'Cuadrado' : 'Square'},
+  ];
+}
+var STICK_MODE_OPTIONS=getStickModeOptions();
 // Keep in step with kStickInnerDefault, kStickOuterDefault and kStickMinGap in
 // StickConfig.h.
 var STICK_INNER_DEFAULT=8, STICK_OUTER_DEFAULT=100, STICK_GAP=5;
@@ -2280,7 +2392,7 @@ function renderStick(id){
 }
 function renderStickSelects(){
   STICKS.forEach(function(id){
-    fillSelect('smode-'+id,STICK_MODE_OPTIONS,sticks[id].mode);
+    fillSelect('smode-'+id,getStickModeOptions(),sticks[id].mode);
     renderStick(id);
   });
 }
@@ -2404,20 +2516,33 @@ document.getElementById('rail').addEventListener('keydown',function(e){
   document.getElementById('rail-'+SECTION_IDS[i]).focus();
 });
 
-var PAD_MODE_SHORT={none:'Off',pointer:'Mouse pointer',scroll:'Scroll wheel',ds4:'PlayStation Touchpad',dpad:'Directional pad',button:'Single button'};
-var STICK_MODE_SHORT={'default':'Default',circle:'Circle',square:'Square'};
+function getPadModeShort(){
+  return isEs ? {none:'Desactivado',pointer:'Puntero de ratón',scroll:'Rueda de desplazamiento',ds4:'Touchpad de PlayStation',dpad:'Cruceta direccional',button:'Botón individual'}
+              : {none:'Off',pointer:'Mouse pointer',scroll:'Scroll wheel',ds4:'PlayStation Touchpad',dpad:'Directional pad',button:'Single button'};
+}
+function getStickModeShort(){
+  return isEs ? {'default':'Por defecto',circle:'Círculo',square:'Cuadrado'}
+              : {'default':'Default',circle:'Circle',square:'Square'};
+}
+var PAD_MODE_SHORT=getPadModeShort();
+var STICK_MODE_SHORT=getStickModeShort();
 function railSummaries(){
   var dual=TRIGGERS.filter(function(t){return tmodes[t]==='dual';});
   var bound=['L4','L5','R4','R5','QAM'].filter(function(id){return bindings[id]&&bindings[id]!=='none';}).length;
   var ls=sticks.LS?sticks.LS.mode:'default', rs=sticks.RS?sticks.RS.mode:'default';
+  var pms=getPadModeShort(), sms=getStickModeShort();
+  var platName=(platform==='switch'?'Nintendo Switch':platform==='ps5'?'PlayStation 5':platform==='ps'?'PlayStation 4':'Xbox 360');
+  var rLabel=rumble===0 ? (isEs?'Desactivada':'Off') : rumble+'%';
   return {
-    general:(platform==='switch'?'Nintendo Switch':platform==='ps5'?'PlayStation 5':platform==='ps'?'PlayStation 4':'Xbox 360')+' \u00b7 Rumble '+rumbleLabel(rumble),
-    lpad:PAD_MODE_SHORT[modes.LPAD]||'',
-    rpad:PAD_MODE_SHORT[modes.RPAD]||'',
-    triggers:dual.length===2?'Dual Stage on both':dual.length===1?'Dual Stage on '+(dual[0]==='LT'?'L2':'R2'):'Analog',
-    buttons:bound+' of 5 bound',
-    sticks:ls===rs?STICK_MODE_SHORT[ls]+' deadzones'
-                   :'Left '+STICK_MODE_SHORT[ls].toLowerCase()+' \u00b7 right '+STICK_MODE_SHORT[rs].toLowerCase()
+    general: platName + ' \u00b7 ' + (isEs ? 'Vibración ' : 'Rumble ') + rLabel,
+    lpad: pms[modes.LPAD]||'',
+    rpad: pms[modes.RPAD]||'',
+    triggers: dual.length===2 ? (isEs ? 'Doble Etapa en ambos' : 'Dual Stage on both')
+            : dual.length===1 ? ((isEs ? 'Doble Etapa en ' : 'Dual Stage on ') + (dual[0]==='LT'?'L2':'R2'))
+            : (isEs ? 'Analógico' : 'Analog'),
+    buttons: isEs ? (bound + ' de 5 asignados') : (bound + ' of 5 bound'),
+    sticks: ls===rs ? (sms[ls] + (isEs ? ' zonas muertas' : ' deadzones'))
+                    : ((isEs ? 'Izq ' : 'Left ') + sms[ls].toLowerCase() + ' \u00b7 ' + (isEs ? 'der ' : 'right ') + sms[rs].toLowerCase())
   };
 }
 // Which section a stored profile key belongs to, so the rail can mark where the
@@ -2472,10 +2597,11 @@ renderAll();
 </body>
 </html>
 )HTML";
-        std::wstring w;
-        w.reserve(sizeof(kHtml));
-        for (const char* p = kHtml; *p; ++p)
-            w += static_cast<wchar_t>(static_cast<unsigned char>(*p));
+        int len = MultiByteToWideChar(CP_UTF8, 0, kHtml, -1, nullptr, 0);
+        std::wstring w(len > 1 ? len - 1 : 0, L'\0');
+        if (len > 1) {
+            MultiByteToWideChar(CP_UTF8, 0, kHtml, -1, &w[0], len);
+        }
         return w;
     }();
     return html;
@@ -3436,7 +3562,7 @@ void RemapWindow::OnWebMessage(const std::wstring& raw) {
         std::string valStr = JsonStr(msg, "value");
         if (!valStr.empty()) {
             int v = std::atoi(valStr.c_str());
-            if (v >= 0 && v <= 2) {
+            if (v >= 0 && v <= 1) {
                 I18n::SetSetting(static_cast<Language>(v));
                 SendInitState();
             }

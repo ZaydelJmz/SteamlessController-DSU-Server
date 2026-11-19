@@ -2,7 +2,7 @@
 
 namespace {
 
-Language g_setting = Language::Auto;
+Language g_setting = Language::English;
 bool g_initialized = false;
 
 constexpr wchar_t kRegKey[] = L"Software\\SteamlessController";
@@ -65,8 +65,6 @@ const Strings kEn[] = {
 
     // LanguageLabel
     ENTRY("Language", "Language"),
-    // LangAuto
-    ENTRY("Auto (Windows)", "Auto (Windows)"),
     // LangEnglish
     ENTRY("English", "English"),
     // LangSpanish
@@ -118,13 +116,11 @@ const Strings kEs[] = {
     // BalloonNoProfilesTitle
     ENTRY("Aún no hay perfiles de juegos", "Aún no hay perfiles de juegos"),
     // BalloonNoProfilesBody
-    ENTRY("El mando permanece en su modo teclado/ratón hasta que agregues un perfil de juego en Personalizar controles.",
-          "El mando permanece en su modo teclado/ratón hasta que agregues un perfil de juego en Personalizar controles."),
+    ENTRY("El mando permanece en su modo teclado/ratón hasta que agregues un perfil de juego en Personalizar Controles.",
+          "El mando permanece en su modo teclado/ratón hasta que agregues un perfil de juego en Personalizar Controles."),
 
     // LanguageLabel
     ENTRY("Idioma", "Idioma"),
-    // LangAuto
-    ENTRY("Automático (Windows)", "Automático (Windows)"),
     // LangEnglish
     ENTRY("English", "English"),
     // LangSpanish
@@ -144,8 +140,10 @@ void Init() {
         DWORD val = 0;
         DWORD size = sizeof(val);
         if (RegQueryValueExW(key, kRegVal, nullptr, nullptr, reinterpret_cast<LPBYTE>(&val), &size) == ERROR_SUCCESS) {
-            if (val <= 2) {
-                g_setting = static_cast<Language>(val);
+            if (val == 1) {
+                g_setting = Language::Spanish;
+            } else {
+                g_setting = Language::English;
             }
         }
         RegCloseKey(key);
@@ -160,13 +158,7 @@ Language GetSetting() {
 
 Language GetEffective() {
     Init();
-    if (g_setting == Language::English) return Language::English;
-    if (g_setting == Language::Spanish) return Language::Spanish;
-    LANGID langId = GetUserDefaultUILanguage();
-    if (PRIMARYLANGID(langId) == LANG_SPANISH) {
-        return Language::Spanish;
-    }
-    return Language::English;
+    return g_setting;
 }
 
 void SetSetting(Language lang) {
@@ -174,10 +166,15 @@ void SetSetting(Language lang) {
     g_initialized = true;
     HKEY key = nullptr;
     if (RegCreateKeyExW(HKEY_CURRENT_USER, kRegKey, 0, nullptr, 0, KEY_WRITE, nullptr, &key, nullptr) == ERROR_SUCCESS) {
-        DWORD val = static_cast<DWORD>(lang);
+        DWORD val = (lang == Language::Spanish) ? 1 : 0;
         RegSetValueExW(key, kRegVal, 0, REG_DWORD, reinterpret_cast<const BYTE*>(&val), sizeof(val));
         RegCloseKey(key);
     }
+}
+
+void ToggleSetting() {
+    Init();
+    SetSetting(g_setting == Language::Spanish ? Language::English : Language::Spanish);
 }
 
 const wchar_t* Text(TextId id) {

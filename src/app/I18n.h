@@ -3,9 +3,8 @@
 #include <string>
 
 enum class Language {
-    Auto = 0,
-    English = 1,
-    Spanish = 2
+    English = 0,
+    Spanish = 1
 };
 
 enum class TextId {
@@ -37,7 +36,6 @@ enum class TextId {
 
     // Language names
     LanguageLabel,
-    LangAuto,
     LangEnglish,
     LangSpanish,
 };
@@ -48,10 +46,10 @@ void Init();
 Language GetSetting();
 Language GetEffective();
 void SetSetting(Language lang);
+void ToggleSetting();
 
 const wchar_t* Text(TextId id);
 const char* TextUtf8(TextId id);
-
-const char* GetLangCode(); // "en" or "es"
+const char* GetLangCode();
 
 } // namespace I18n
