@@ -8,6 +8,7 @@
 #include "GameProfiles.h"
 #include "InputInjection.h"
 #include "steam/SteamController.h"
+#include "I18n.h"
 #include "resource.h"
 #include <shellapi.h>
 #include <dbt.h>
@@ -610,7 +611,9 @@ void TrayApp::SetPlatform(ControllerPlatform platform) {
         std::wstring name = (platform == ControllerPlatform::Xbox ? L"Xbox 360 (XInput Controller)" :
                              platform == ControllerPlatform::PlayStation ? L"PlayStation 4 (DualShock 4)" :
                              platform == ControllerPlatform::DualSense ? L"PlayStation 5 (DualSense)" : L"Nintendo Switch (Pro Controller)");
-        ShowAlertBalloon(L"Platform Changed", L"Emulating " + name + L" (Player 1)", BalloonAction::None, NIIF_INFO);
+        wchar_t buf[256];
+        swprintf_s(buf, I18n::Text(TextId::BalloonEmulating), name.c_str());
+        ShowAlertBalloon(I18n::Text(TextId::BalloonPlatformChanged), buf, BalloonAction::None, NIIF_INFO);
     }
 }
 
@@ -2247,6 +2250,14 @@ void TrayApp::OnPanelAction(TrayPanel::Action action) {
     case TrayPanel::Action::Customize:      id = IDM_REMAP_BACK;       break;
     case TrayPanel::Action::Startup:        id = IDM_STARTUP;          break;
     case TrayPanel::Action::Notifications:  id = IDM_NOTIFICATIONS;    break;
+    case TrayPanel::Action::Language: {
+        Language cur = I18n::GetSetting();
+        Language next = (cur == Language::Auto) ? Language::English :
+                        (cur == Language::English) ? Language::Spanish : Language::Auto;
+        I18n::SetSetting(next);
+        m_panel.Refresh(true);
+        break;
+    }
     case TrayPanel::Action::OpenLog:        id = IDM_OPENLOG;          break;
     case TrayPanel::Action::Exit:           id = IDM_EXIT;             break;
     case TrayPanel::Action::EnableDevice:   id = IDM_ENABLE_DEVICE;    break;

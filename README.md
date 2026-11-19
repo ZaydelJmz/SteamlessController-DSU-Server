@@ -38,6 +38,10 @@ A standalone driver and input wrapper specifically tailored for the **Steam Cont
   * Direct 6-axis IMU UDP motion streaming for gyro aiming in emulators (**Ryujinx, Yuzu, Cemu, Dolphin, PCSX2, RPCS3, Citra**).
   * No external bridge apps (such as BetterJoy or JoyShockMapper) required.
 
+* 🌐 **Built-in Language Selector (English / Español / Auto)**
+  * Switch seamlessly between English and Spanish directly from the tray panel or the Customize Controls window.
+  * Includes automatic language detection matching Windows system display preferences.
+
 * 📳 **Advanced Haptics & Trackpad Movement Controls**
   * **Movement Haptics** toggle in Customize Controls to silence continuous trackpad gliding buzz while preserving crisp tactile click pulses.
   * Click pulses only trigger when a real action is bound; inert when set to 'None'.
@@ -72,8 +76,8 @@ A standalone driver and input wrapper specifically tailored for the **Steam Cont
 
 ### 2. Getting Started
 
-1. Download **`SteamlessDSUServer-0.1.6.zip`** from the [Latest Release](https://github.com/ZaydelJmz/SteamlessController-DSU-Server/releases/latest).
-2. Extract the folder to your preferred location (e.g. `C:\Programas\SteamlessDSUServer-0.1.6`).
+1. Download **`SteamlessDSUServer-0.1.7.zip`** from the [Latest Release](https://github.com/ZaydelJmz/SteamlessController-DSU-Server/releases/latest).
+2. Extract the folder to your preferred location (e.g. `C:\Programas\SteamlessDSUServer-Latest` or `SteamlessDSUServer-0.1.7`).
 3. If running for the first time, right-click **`Install Prerequisites.cmd`** and select **"Run as administrator"**.
 4. Restart Windows if installing drivers for the first time.
 5. Connect your Steam Controller 2 and launch **`SteamlessController.exe`**.
@@ -158,6 +162,10 @@ Controlador y wrapper de entrada independiente diseñado específicamente para e
   * Transmisión directa por UDP de movimiento IMU de 6 ejes para apuntar con giroscopio en emuladores (**Ryujinx, Yuzu, Cemu, Dolphin, PCSX2, RPCS3, Citra**).
   * Sin necesidad de aplicaciones puente externas (como BetterJoy o JoyShockMapper).
 
+* 🌐 **Selector de Idioma Integrado (Español / English / Auto)**
+  * Alterna de forma fluida e instantánea entre español e inglés directamente desde el panel de la bandeja o la ventana de Personalizar Controles.
+  * Incluye detección automática basada en las preferencias de idioma de Windows.
+
 * 📳 **Controles Hápticos Avanzados y Movimiento de Trackpad**
   * Interruptor **Movement Haptics** en Customize Controls para silenciar el zumbido continuo al deslizar el dedo por el trackpad, preservando pulsos táctiles nítidos al hacer clic.
   * Los pulsos de clic solo se activan cuando hay una acción real asignada; permanecen inertes al configurarse en 'None'.
@@ -192,8 +200,8 @@ Controlador y wrapper de entrada independiente diseñado específicamente para e
 
 #### 2. Primeros Pasos
 
-1. Descarga **`SteamlessDSUServer-0.1.6.zip`** desde la [Última Release](https://github.com/ZaydelJmz/SteamlessController-DSU-Server/releases/latest).
-2. Descomprime la carpeta en tu ubicación preferida (ej. `C:\Programas\SteamlessDSUServer-0.1.6`).
+1. Descarga **`SteamlessDSUServer-0.1.7.zip`** desde la [Última Release](https://github.com/ZaydelJmz/SteamlessController-DSU-Server/releases/latest).
+2. Descomprime la carpeta en tu ubicación preferida (ej. `C:\Programas\SteamlessDSUServer-Latest` o `SteamlessDSUServer-0.1.7`).
 3. Si es tu primera vez, haz clic derecho sobre **`Install Prerequisites.cmd`** y selecciona **"Ejecutar como administrador"**.
 4. Reinicia Windows si es la primera vez que instalas los controladores.
 5. Conecta tu Steam Controller 2 y abre **`SteamlessController.exe`**.

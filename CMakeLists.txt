@@ -130,6 +130,7 @@ add_executable(TrayPanelProbe
     src/app/TrayPanel.cpp
     src/app/TrayPanelA11y.cpp
     src/app/EmbeddedFonts.cpp
+    src/app/I18n.cpp
     resources/fonts.rc
 )
 target_include_directories(TrayPanelProbe PRIVATE src resources)
@@ -274,6 +275,7 @@ add_executable(SteamlessController WIN32
     src/app/RemapWindow.cpp
     src/app/SteamAppLocator.cpp
     src/app/ViGEmBusInfo.cpp
+    src/app/I18n.cpp
     resources/app.rc
 )
 target_include_directories(SteamlessController PRIVATE

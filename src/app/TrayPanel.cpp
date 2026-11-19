@@ -4,6 +4,7 @@
 #include "TrayPanel.h"
 #include "EmbeddedFonts.h"
 #include "TrayPanelA11y.h"
+#include "I18n.h"
 
 #include <d2d1.h>
 #include <dwmapi.h>
@@ -101,8 +102,10 @@ const wchar_t* ModeCaption(int mode) {
 
 const wchar_t* RowLabel(Action a) {
     switch (a) {
-    case Action::Startup:        return L"Start with Windows";
-    default:                     return L"Show Notifications";
+    case Action::Startup:        return I18n::Text(TextId::StartWithWindows);
+    case Action::Notifications:  return I18n::Text(TextId::ShowNotifications);
+    case Action::Language:       return I18n::Text(TextId::LanguageRow);
+    default:                     return L"";
     }
 }
 
@@ -128,6 +131,7 @@ const wchar_t* AutomationId(Action a) {
     case Action::Customize:      return L"CustomizeControls";
     case Action::Startup:        return L"StartWithWindows";
     case Action::Notifications:  return L"ShowNotifications";
+    case Action::Language:       return L"Language";
     case Action::OpenLog:        return L"EventLog";
     case Action::Exit:           return L"Exit";
     case Action::EnableDevice:   return L"ReenableDevice";
@@ -136,10 +140,10 @@ const wchar_t* AutomationId(Action a) {
 }
 
 std::wstring StatusText(const Model& m) {
-    if (m.switching)      return L"Switching platform...";
-    if (!m.connected)     return m.deviceDisabled ? L"Controller unavailable" : L"No controller detected";
-    if (!m.manual)        return m.controlOn ? L"On · Auto Mode" : L"Off · Auto Mode";
-    return m.controlOn ? L"Active" : L"Off";
+    if (m.switching)      return I18n::Text(TextId::StatusSwitching);
+    if (!m.connected)     return m.deviceDisabled ? I18n::Text(TextId::StatusUnavailable) : I18n::Text(TextId::StatusNoController);
+    if (!m.manual)        return m.controlOn ? L"On \u00b7 Auto" : L"Off \u00b7 Auto";
+    return m.controlOn ? I18n::Text(TextId::StatusActive) : I18n::Text(TextId::StatusOff);
 }
 
 struct Hit {
@@ -168,8 +172,8 @@ struct Layout {
     D2D1_RECT_F customize{};
 
     int         rowCount = 0;
-    Action      rowAct[2]{};
-    D2D1_RECT_F row[2]{};
+    Action      rowAct[3]{};
+    D2D1_RECT_F row[3]{};
 
     D2D1_RECT_F footer{}, logBtn{}, exitBtn{};
 };
@@ -601,6 +605,7 @@ struct TrayPanel::Impl : PanelAccessibility::Host {
         y += 6.f;
         lo.rowAct[lo.rowCount++] = Action::Startup;
         lo.rowAct[lo.rowCount++] = Action::Notifications;
+        lo.rowAct[lo.rowCount++] = Action::Language;
         for (int i = 0; i < lo.rowCount; ++i) {
             lo.row[i] = D2D1::RectF(8, y, kWidth - 8, y + 40.f);
             AddHit(lo.row[i], lo.rowAct[i]);
@@ -744,10 +749,10 @@ struct TrayPanel::Impl : PanelAccessibility::Host {
             Fill(lo.bannerR, 0.f, kWarn, 0.12f);
             Fill(D2D1::RectF(0, lo.bannerR.bottom - 1, kWidth, lo.bannerR.bottom), 0.f, kWarn, 0.35f);
             IconWarn(14.f, 17.f, kWarn);
-            Text(L"Controller device is switched off in Windows.", lo.bannerText, 12.5f,
+            Text(I18n::Text(TextId::DevSwitchedOff), lo.bannerText, 12.5f,
                  DWRITE_FONT_WEIGHT_REGULAR, kWarnText, 1.f, false, DWRITE_TEXT_ALIGNMENT_LEADING, 0.f, true);
             Fill(lo.bannerBtn, 7.f, kWarn);
-            Text(L"Re-enable", lo.bannerBtn, 12.5f, DWRITE_FONT_WEIGHT_BOLD, 0x1d1604, 1.f, false,
+            Text(I18n::Text(TextId::ReEnable), lo.bannerBtn, 12.5f, DWRITE_FONT_WEIGHT_BOLD, 0x1d1604, 1.f, false,
                  DWRITE_TEXT_ALIGNMENT_CENTER);
         }
 
@@ -778,7 +783,7 @@ struct TrayPanel::Impl : PanelAccessibility::Host {
             IconGamepad(lo.tile, 24.f, live ? 0xbfe3ff : 0x9aa5b0, live ? 0x0a4a78 : 0x2a323c);
         }
 
-        Text(L"Steamless Mode", lo.title, 16.f, DWRITE_FONT_WEIGHT_SEMI_BOLD, kText);
+        Text(I18n::Text(TextId::SteamlessMode), lo.title, 16.f, DWRITE_FONT_WEIGHT_SEMI_BOLD, kText);
 
         // Status line: dot, text, and the battery when there is a reading.
         {
@@ -810,7 +815,7 @@ struct TrayPanel::Impl : PanelAccessibility::Host {
         Fill(D2D1::RectF(0, lo.div1, kWidth, lo.div1 + 1), 0.f, 0xffffff, 0.07f);
 
         // Target Platform: header and full-width segmented buttons
-        Text(L"TARGET PLATFORM", lo.platLabel, 10.5f, DWRITE_FONT_WEIGHT_SEMI_BOLD, kText3, 1.f, true,
+        Text(I18n::Text(TextId::TargetPlatform), lo.platLabel, 10.5f, DWRITE_FONT_WEIGHT_SEMI_BOLD, kText3, 1.f, true,
              DWRITE_TEXT_ALIGNMENT_LEADING, 1.4f);
 
         // Segmented buttons track across full width
@@ -841,10 +846,10 @@ struct TrayPanel::Impl : PanelAccessibility::Host {
             Fill(lo.customize, 11.f, kAccent, hot ? 0.17f : 0.10f);
             Outline(lo.customize, 11.f, kAccent, hot ? 0.5f : 0.28f);
             IconSliders(lo.customize.left + 12.f, (lo.customize.top + lo.customize.bottom) * 0.5f - 11.f, kAccent);
-            Text(L"Customize Controls",
+            Text(I18n::Text(TextId::CustomizeControls),
                  D2D1::RectF(lo.customize.left + 46.f, lo.customize.top + 8.f, lo.customize.right - 36.f, lo.customize.top + 28.f),
                  14.5f, DWRITE_FONT_WEIGHT_SEMI_BOLD, kText);
-            Text(L"Bindings, trackpads, triggers, sticks",
+            Text(I18n::Text(TextId::CustomizeSub),
                  D2D1::RectF(lo.customize.left + 46.f, lo.customize.top + 28.f, lo.customize.right - 36.f, lo.customize.top + 46.f),
                  12.f, DWRITE_FONT_WEIGHT_REGULAR, kText2);
             IconChevron(lo.customize.right - 28.f, (lo.customize.top + lo.customize.bottom) * 0.5f - 8.f, kAccent);
@@ -852,15 +857,29 @@ struct TrayPanel::Impl : PanelAccessibility::Host {
 
         Fill(D2D1::RectF(0, lo.div2, kWidth, lo.div2 + 1), 0.f, 0xffffff, 0.07f);
 
-        // Settings switches
+        // Settings switches and language row
         for (int i = 0; i < lo.rowCount; ++i) {
             DrawHoverFor(lo.rowAct[i], lo.row[i], 9.f, 0xffffff, 0.05f);
             Text(RowLabel(lo.rowAct[i]),
                  D2D1::RectF(lo.row[i].left + 12.f, lo.row[i].top, lo.row[i].right - 60.f, lo.row[i].bottom),
                  14.f, DWRITE_FONT_WEIGHT_REGULAR, kText);
-            const float sx = lo.row[i].right - 8.f - 36.f;
-            const float sy = (lo.row[i].top + lo.row[i].bottom) * 0.5f - 10.f;
-            DrawSwitch(D2D1::RectF(sx, sy, sx + 36.f, sy + 20.f), RowOn(lo.rowAct[i]), true);
+            if (lo.rowAct[i] == Action::Language) {
+                const float bw = 50.f;
+                const float bx = lo.row[i].right - 8.f - bw;
+                const float by = (lo.row[i].top + lo.row[i].bottom) * 0.5f - 11.f;
+                D2D1_RECT_F bRect = D2D1::RectF(bx, by, bx + bw, by + 22.f);
+                Fill(bRect, 6.f, kInset);
+                Outline(bRect, 6.f, kBorder, 0.6f, 1.f);
+                Language s = I18n::GetSetting();
+                const wchar_t* langCode = (s == Language::Auto) ? L"Auto" :
+                                          (s == Language::Spanish) ? L"ES" : L"EN";
+                Text(langCode, bRect, 11.5f, DWRITE_FONT_WEIGHT_SEMI_BOLD, kAccent, 1.f, false,
+                     DWRITE_TEXT_ALIGNMENT_CENTER);
+            } else {
+                const float sx = lo.row[i].right - 8.f - 36.f;
+                const float sy = (lo.row[i].top + lo.row[i].bottom) * 0.5f - 10.f;
+                DrawSwitch(D2D1::RectF(sx, sy, sx + 36.f, sy + 20.f), RowOn(lo.rowAct[i]), true);
+            }
         }
 
         // Footer with 2 full-width stacked buttons (Exit as the last one)
@@ -872,7 +891,7 @@ struct TrayPanel::Impl : PanelAccessibility::Host {
         Outline(lo.logBtn, 8.f, kBorder, 0.45f, 1.f);
         DrawHoverFor(Action::OpenLog, lo.logBtn, 8.f, 0xffffff, 0.07f);
         IconList(lo.logBtn.left + 14.f, (lo.logBtn.top + lo.logBtn.bottom) * 0.5f - 8.f, kText2);
-        Text(L"Event log", D2D1::RectF(lo.logBtn.left + 38.f, lo.logBtn.top, lo.logBtn.right - 14.f, lo.logBtn.bottom),
+        Text(I18n::Text(TextId::EventLog), D2D1::RectF(lo.logBtn.left + 38.f, lo.logBtn.top, lo.logBtn.right - 14.f, lo.logBtn.bottom),
              13.f, DWRITE_FONT_WEIGHT_MEDIUM, kText2);
 
         // Exit button (wide, last button at the bottom)
@@ -880,7 +899,7 @@ struct TrayPanel::Impl : PanelAccessibility::Host {
         Outline(lo.exitBtn, 8.f, kBorder, 0.45f, 1.f);
         DrawHoverFor(Action::Exit, lo.exitBtn, 8.f, 0xef4444, 0.12f);
         IconExit(lo.exitBtn.left + 14.f, (lo.exitBtn.top + lo.exitBtn.bottom) * 0.5f - 8.f, kText2);
-        Text(L"Exit", D2D1::RectF(lo.exitBtn.left + 38.f, lo.exitBtn.top, lo.exitBtn.right - 14.f, lo.exitBtn.bottom),
+        Text(I18n::Text(TextId::Exit), D2D1::RectF(lo.exitBtn.left + 38.f, lo.exitBtn.top, lo.exitBtn.right - 14.f, lo.exitBtn.bottom),
              13.f, DWRITE_FONT_WEIGHT_MEDIUM, kText2);
 
         // Windows 10 has no rounded corners or outline to lend us.

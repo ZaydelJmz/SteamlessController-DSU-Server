@@ -4,6 +4,7 @@
 #include "EmbeddedFonts.h"
 #include "EventLog.h"
 #include "ProcessIdentity.h"
+#include "I18n.h"
 #include <shellapi.h>
 #include <shlobj.h>
 #include <shlwapi.h>
@@ -355,6 +356,17 @@ R"HTML(
           <input type="range" id="rumble" class="speed-slider">
           <span class="speed-val" id="rumble-val">100%</span>
         </div>
+      </div>
+    </div>
+    <div class="row mode-row" id="language-row">
+      <div class="row-top">
+        <span class="pos-label">Language / Idioma</span>
+        <div class="connector"></div>
+        <select id="language-select" class="mode-select">
+          <option value="0">Auto (Windows)</option>
+          <option value="1">English</option>
+          <option value="2">Español</option>
+        </select>
       </div>
     </div>
   </div>
@@ -953,6 +965,30 @@ function postMsg(obj){
   if(window.chrome&&window.chrome.webview)
     window.chrome.webview.postMessage(JSON.stringify(obj));
 }
+function applyLanguage(lang){
+  var isEs=(lang==='es');
+  var setT=function(sel,text){var el=document.querySelector(sel);if(el)el.textContent=text;};
+  setT('#rail-general .ri-title', 'General');
+  setT('#rail-lpad .ri-title', isEs?'Trackpad Izquierdo':'Left Trackpad');
+  setT('#rail-rpad .ri-title', isEs?'Trackpad Derecho':'Right Trackpad');
+  setT('#rail-triggers .ri-title', isEs?'Gatillos':'Triggers');
+  setT('#rail-buttons .ri-title', isEs?'Botones Traseros':'Buttons');
+  setT('#rail-sticks .ri-title', 'Sticks');
+
+  setT('#pane-general .pane-head h2', 'General');
+  setT('#pane-general .pane-head p', isEs?'Qué mando ven tus juegos y la intensidad de la vibración.':'Which controller your games see, and how strongly it rumbles.');
+  setT('#pane-lpad .pane-head h2', isEs?'Trackpad Izquierdo':'Left Trackpad');
+  setT('#pane-rpad .pane-head h2', isEs?'Trackpad Derecho':'Right Trackpad');
+  setT('#pane-triggers .pane-head h2', isEs?'Gatillos':'Triggers');
+  setT('#pane-buttons .pane-head h2', isEs?'Botones Traseros':'Buttons');
+  setT('#pane-sticks .pane-head h2', 'Sticks');
+
+  setT('#pane-general .group-label', isEs?'AJUSTES GENERALES':'GENERAL SETTINGS');
+  setT('#platform-row .pos-label', isEs?'Plataforma del Mando':'Controller Platform');
+  setT('#touchpad-share-row .pos-label', isEs?'Mapear botón Back a Clic del Touchpad (PS4 / PS5)':'Map Back button to Touchpad Click (PS4 / PS5)');
+  setT('#rumble-row .pos-label', isEs?'Vibración':'Rumble');
+  setT('#language-row .pos-label', isEs?'Idioma':'Language / Idioma');
+}
 if(window.chrome&&window.chrome.webview){
   window.chrome.webview.addEventListener('message',function(e){
     var msg=JSON.parse(e.data);
@@ -960,9 +996,14 @@ if(window.chrome&&window.chrome.webview){
       keyLabels=msg.labels||{};
       GAMES=msg.games||[];
       PROFILES=msg.profiles||PROFILES;
-      // Set by C++, not assumed: when the enumeration beat WebView2's startup
-      // the list is already in this message and no 'games' message follows.
       gamesPending=(msg.pending==='1');
+      if(msg.languageSetting!==undefined){
+        var lsel=document.getElementById('language-select');
+        if(lsel) lsel.value=String(msg.languageSetting);
+      }
+      if(msg.language){
+        applyLanguage(msg.language);
+      }
       currentGame='';
       loadProfileInto(PROFILES['']||{});
       closeCombo();
@@ -2099,6 +2140,14 @@ function renderTouchpadShare(){
   });
 })();
 renderTouchpadShare();
+(function(){
+  var lsel=document.getElementById('language-select');
+  if(lsel){
+    lsel.addEventListener('change',function(e){
+      postMsg({type:'setLanguage',value:e.target.value});
+    });
+  }
+})();
 )HTML"
 // Stick deadzones (#131), in a literal of their own for the same reason as the
 // triggers above. The hooks that bring it into the profile cycle — stickReset,
@@ -3383,6 +3432,16 @@ void RemapWindow::OnWebMessage(const std::wstring& raw) {
         // past the tray's own rule about who decides.
         if (m_controlManual && m_onRequestEnable) m_onRequestEnable();
 
+    } else if (type == "setLanguage") {
+        std::string valStr = JsonStr(msg, "value");
+        if (!valStr.empty()) {
+            int v = std::atoi(valStr.c_str());
+            if (v >= 0 && v <= 2) {
+                I18n::SetSetting(static_cast<Language>(v));
+                SendInitState();
+            }
+        }
+
     } else if (type == "browseExe") {
         BrowseForExe();
     }
@@ -3535,6 +3594,8 @@ void RemapWindow::SendInitState() {
     std::wstring json =
         L"{\"type\":\"init\""
         L",\"pending\":\"" + std::wstring(m_games.empty() ? L"1" : L"0") + L"\""
+        L",\"language\":\"" + std::wstring(I18n::GetEffective() == Language::Spanish ? L"es" : L"en") + L"\""
+        L",\"languageSetting\":" + std::to_wstring(static_cast<int>(I18n::GetSetting())) +
         L",\"labels\":{" + labels + L"}"
         L",\"games\":[" + GamesJson() + L"]"
         L",\"profiles\":{" + ProfilesJson() + L"}}";

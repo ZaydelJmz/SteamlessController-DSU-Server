@@ -22,7 +22,7 @@ public:
         ModeManual, ModeSteam, ModeGame, ModeProfile,
         PlatformXbox, PlatformPS, PlatformPS5, PlatformSwitch,
         Customize,
-        Startup, Notifications,
+        Startup, Notifications, Language,
         OpenLog, Exit,
         EnableDevice,
     };
