@@ -323,7 +323,7 @@ bool ViiperClient::AddDevice() {
     if (text.find("deviceiocontrol failed") != std::string::npos)
         return Fail("usbip_version",
                     L"This usbip-win2 version does not work with viiper.exe. Run "
-                    L"\"Instalar requisitos\" to install usbip-win2 0.9.7.7, then reboot.");
+                    L"\"Install Prerequisites\" to install usbip-win2 0.9.7.7, then reboot.");
     if (text.find("usbip-win2 driver not found") != std::string::npos
             || text.find("requires the usbip-win2 driver") != std::string::npos
             || text.find("failed to auto-attach device") != std::string::npos)

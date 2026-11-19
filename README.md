@@ -66,7 +66,7 @@ A standalone driver and input wrapper specifically tailored for the **Steam Cont
 * **[usbip-win2](https://github.com/cezanne/usbip-win2)** (for Nintendo Switch (Pro Controller) & PlayStation 5 (DualSense) emulation)
 * Visual C++ 2015–2022 Redistributable (x64)
 
-> 💡 **Quick Install**: An automated installer script (`Instalar requisitos.cmd`) is included in the release package to download and install all missing drivers with one click.
+> 💡 **Quick Install**: An automated installer script (`Install Prerequisites.cmd`) is included in the release package to download and install all missing drivers with one click.
 
 ---
 
@@ -74,7 +74,7 @@ A standalone driver and input wrapper specifically tailored for the **Steam Cont
 
 1. Download **`SteamlessDSUServer-0.1.6.zip`** from the [Latest Release](https://github.com/ZaydelJmz/SteamlessController-DSU-Server/releases/latest).
 2. Extract the folder to your preferred location (e.g. `C:\Programas\SteamlessDSUServer-0.1.6`).
-3. If running for the first time, right-click **`Instalar requisitos.cmd`** and select **"Run as administrator"**.
+3. If running for the first time, right-click **`Install Prerequisites.cmd`** and select **"Run as administrator"**.
 4. Restart Windows if installing drivers for the first time.
 5. Connect your Steam Controller 2 and launch **`SteamlessController.exe`**.
 6. The application minimizes to the notification area (system tray). Click the tray icon to switch platforms instantly via **"Choose Platform"** or customize controls.
@@ -179,7 +179,7 @@ Controlador independiente para el **Steam Controller 2** en Windows que funciona
 
 1. Descarga **`SteamlessDSUServer-0.1.6.zip`** desde la sección de [Releases](https://github.com/ZaydelJmz/SteamlessController-DSU-Server/releases/latest).
 2. Descomprime la carpeta donde prefieras.
-3. Si es tu primera vez, haz clic derecho sobre **`Instalar requisitos.cmd`** y elige **"Ejecutar como administrador"**.
+3. Si es tu primera vez, haz clic derecho sobre **`Install Prerequisites.cmd`** y elige **"Ejecutar como administrador"**.
 4. Reinicia el equipo si instalaste drivers nuevos.
 5. Conecta tu Steam Controller 2 y abre **`SteamlessController.exe`**.
 6. El programa se iniciará en la bandeja del sistema (junto al reloj de Windows). Haz clic en su icono para alternar de plataforma o configurar controles.
