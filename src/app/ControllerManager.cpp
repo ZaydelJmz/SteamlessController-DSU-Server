@@ -428,14 +428,10 @@ bool ControllerManager::IsGameModeActive() const {
 
 void ControllerManager::UpdateDsuState() {
     if (!m_dsuServer) return;
-    // DSU is active when:
-    // - Steamless mode is OFF (!IsGameModeActive()), OR
-    // - Steamless mode is ON and platform is Xbox 360 (which lacks native gyro).
-    // (DSU is paused/inactive in Switch Pro or DualShock 4 modes, which have native gyro).
-    const bool active = !IsGameModeActive() || (m_profile.platform == ControllerPlatform::Xbox);
-    m_dsuServer->SetActive(active);
-
+    // DSU motion server remains continuously active for emulators (Cemu, Yuzu, Ryujinx, etc.)
+    // on 127.0.0.1:26760 across all emulated platforms (Xbox, Switch Pro, PS4, PS5).
     const bool hasPad = !m_slots.empty() && m_slots[0]->sc && m_slots[0]->sc->IsOpen();
+    m_dsuServer->SetActive(hasPad);
     m_dsuServer->SetSlotConnected(0, hasPad);
 }
 
