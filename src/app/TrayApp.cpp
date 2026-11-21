@@ -2250,6 +2250,8 @@ void TrayApp::OnPanelAction(TrayPanel::Action action) {
     case TrayPanel::Action::PlatformPS:     id = IDM_PLATFORM_PS;      break;
     case TrayPanel::Action::PlatformPS5:    id = IDM_PLATFORM_PS5;     break;
     case TrayPanel::Action::PlatformSwitch: id = IDM_PLATFORM_SWITCH;  break;
+    case TrayPanel::Action::CopyDsuIp:
+    case TrayPanel::Action::CopyDsuPort:    return;
     case TrayPanel::Action::Customize:      id = IDM_REMAP_BACK;       break;
     case TrayPanel::Action::Startup:        id = IDM_STARTUP;          break;
     case TrayPanel::Action::Notifications:  id = IDM_NOTIFICATIONS;    break;

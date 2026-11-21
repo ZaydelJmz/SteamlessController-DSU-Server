@@ -143,6 +143,10 @@ R"HTML(
    the design has it, with the text area stopping short of it. */
 .mode-select{flex:none;width:270px;height:34px;padding:0 34px 0 12px;border-radius:8px;border:1px solid var(--line2);background:var(--inset) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' fill='none' stroke='%238794a1' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 4.5L6 8l3.5-3.5'/%3E%3C/svg%3E") no-repeat right 12px center;color:var(--tx);font-family:inherit;font-size:13.5px;font-weight:600;cursor:pointer;-webkit-appearance:none;appearance:none;text-overflow:ellipsis;}
 .mode-select:hover{border-color:var(--acc);}
+.dsu-btn{height:34px;padding:0 16px;border-radius:8px;border:1px solid var(--line2);background:var(--inset);color:var(--tx);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s ease;-webkit-user-select:none;user-select:none;outline:none;}
+.dsu-btn:hover{border-color:var(--acc);background:rgba(74,158,255,.1);color:#fff;}
+.dsu-btn:active{transform:scale(.96);}
+.dsu-btn.copied{border-color:#22c55e!important;background:rgba(34,197,94,.18)!important;color:#22c55e!important;}
 .speed-wrap{display:flex;align-items:center;gap:10px;flex:none;min-width:220px;}
 .speed-slider{-webkit-appearance:none;appearance:none;flex:1;height:4px;border-radius:2px;background:rgba(255,255,255,.16);outline:none;cursor:pointer;}
 .speed-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:15px;height:15px;border-radius:50%;background:var(--acc);border:none;cursor:pointer;}
@@ -337,6 +341,17 @@ R"HTML(
         <span class="pos-label">Controller Platform</span>
         <div class="connector"></div>
         <select id="platform" class="mode-select"></select>
+      </div>
+    </div>
+    <div class="row mode-row" id="dsu-server-row">
+      <div class="row-top">
+        <span class="pos-label">DSU Server (Cemuhook)</span>
+        <div class="connector"></div>
+        <div style="display:flex;align-items:center;gap:8px;height:34px;">
+          <button type="button" id="btn-copy-ip" class="dsu-btn" title="Click to copy IP">127.0.0.1</button>
+          <span style="color:var(--text3,#888);font-weight:bold;font-size:15px;">:</span>
+          <button type="button" id="btn-copy-port" class="dsu-btn" title="Click to copy Port">26760</button>
+        </div>
       </div>
     </div>
     <div class="row mode-row" id="touchpad-share-row">
@@ -1040,6 +1055,11 @@ function applyLanguage(lang){
 
   // Pos labels
   setT('#platform-row .pos-label', isEs ? 'Plataforma del Mando' : 'Controller Platform');
+  setT('#dsu-server-row .pos-label', isEs ? 'Servidor DSU (Cemuhook)' : 'DSU Server (Cemuhook)');
+  var bIp = document.getElementById('btn-copy-ip');
+  if (bIp) bIp.title = isEs ? 'Clic para copiar IP' : 'Click to copy IP';
+  var bPort = document.getElementById('btn-copy-port');
+  if (bPort) bPort.title = isEs ? 'Clic para copiar Puerto' : 'Click to copy Port';
   setT('#touchpad-share-row .pos-label', isEs ? 'Mapear botón Back a Click del Touchpad (PS4 / PS5)' : 'Map Back button to Touchpad Click (PS4 / PS5)');
   setT('#rumble-row .pos-label', isEs ? 'Vibración' : 'Rumble');
   setT('#language-row .pos-label', isEs ? 'Idioma' : 'Language');
@@ -1835,6 +1855,43 @@ document.getElementById('use-default').addEventListener('change',function(e){
 document.getElementById('platform').addEventListener('change',function(e){
   setPlatform(e.target.value);
 });
+function attachDsuCopy(btnId, text) {
+  var b = document.getElementById(btnId);
+  if (!b) return;
+  b.addEventListener('click', function() {
+    var orig = b.textContent;
+    var doneMsg = isEs ? '¡Copiado!' : 'Copied!';
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).catch(function() {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand('copy'); } catch(e) {}
+        document.body.removeChild(ta);
+      });
+    } else {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); } catch(e) {}
+      document.body.removeChild(ta);
+    }
+    b.textContent = doneMsg;
+    b.classList.add('copied');
+    setTimeout(function() {
+      b.textContent = orig;
+      b.classList.remove('copied');
+    }, 1200);
+  });
+}
+attachDsuCopy('btn-copy-ip', '127.0.0.1');
+attachDsuCopy('btn-copy-port', '26760');
 PADS.forEach(function(padId){
   var modeSel=document.getElementById('mode-'+padId);
   if(modeSel) modeSel.addEventListener('change',function(e){setMode(padId,e.target.value);});

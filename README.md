@@ -72,8 +72,8 @@ A standalone driver and input wrapper specifically tailored for the **Steam Cont
 
 ### 2. Getting Started
 
-1. Download **`SteamlessDSUServer-0.1.7.zip`** from the [Latest Release](https://github.com/ZaydelJmz/SteamlessController-DSU-Server/releases/latest).
-2. Extract the folder to your preferred location (e.g. `C:\Programas\SteamlessDSUServer-Latest` or `SteamlessDSUServer-0.1.7`).
+1. Download **`SteamlessDSUServer-0.1.8.zip`** from the [Latest Release](https://github.com/ZaydelJmz/SteamlessController-DSU-Server/releases/latest).
+2. Extract the folder to your preferred location (e.g. `C:\Programas\SteamlessDSUServer-Latest` or `SteamlessDSUServer-0.1.8`).
 3. If running for the first time, right-click **`Install Prerequisites.cmd`** and select **"Run as administrator"**.
 4. Restart Windows if installing drivers for the first time.
 5. Connect your Steam Controller 2 and launch **`SteamlessController.exe`**.
@@ -192,8 +192,8 @@ Controlador y wrapper de entrada independiente diseñado específicamente para e
 
 #### 2. Primeros Pasos
 
-1. Descarga **`SteamlessDSUServer-0.1.7.zip`** desde la [Última Release](https://github.com/ZaydelJmz/SteamlessController-DSU-Server/releases/latest).
-2. Descomprime la carpeta en tu ubicación preferida (ej. `C:\Programas\SteamlessDSUServer-Latest` o `SteamlessDSUServer-0.1.7`).
+1. Descarga **`SteamlessDSUServer-0.1.8.zip`** desde la [Última Release](https://github.com/ZaydelJmz/SteamlessController-DSU-Server/releases/latest).
+2. Descomprime la carpeta en tu ubicación preferida (ej. `C:\Programas\SteamlessDSUServer-Latest` o `SteamlessDSUServer-0.1.8`).
 3. Si es tu primera vez, haz clic derecho sobre **`Install Prerequisites.cmd`** y selecciona **"Ejecutar como administrador"**.
 4. Reinicia Windows si es la primera vez que instalas los controladores.
 5. Conecta tu Steam Controller 2 y abre **`SteamlessController.exe`**.

@@ -16,6 +16,8 @@ enum class TextId {
     StatusNoController,
     StatusUnavailable,
     TargetPlatform,
+    DsuServer,
+    Copied,
     CustomizeControls,
     CustomizeSub,
     StartWithWindows,

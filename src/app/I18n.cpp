@@ -30,6 +30,10 @@ const Strings kEn[] = {
     ENTRY("Controller unavailable", "Controller unavailable"),
     // TargetPlatform
     ENTRY("TARGET PLATFORM", "TARGET PLATFORM"),
+    // DsuServer
+    ENTRY("DSU SERVER (CEMUHOOK)", "DSU SERVER (CEMUHOOK)"),
+    // Copied
+    ENTRY("✓ Copied", "✓ Copied"),
     // CustomizeControls
     ENTRY("Customize Controls", "Customize Controls"),
     // CustomizeSub
@@ -86,6 +90,10 @@ const Strings kEs[] = {
     ENTRY("Mando no disponible", "Mando no disponible"),
     // TargetPlatform
     ENTRY("PLATAFORMA DESTINO", "PLATAFORMA DESTINO"),
+    // DsuServer
+    ENTRY("SERVIDOR DSU (CEMUHOOK)", "SERVIDOR DSU (CEMUHOOK)"),
+    // Copied
+    ENTRY("✓ Copiado", "✓ Copiado"),
     // CustomizeControls
     ENTRY("Personalizar Controles", "Personalizar Controles"),
     // CustomizeSub

@@ -22,6 +22,7 @@ public:
         ModeManual, ModeSteam, ModeGame, ModeProfile,
         PlatformXbox, PlatformPS, PlatformPS5, PlatformSwitch,
         Customize,
+        CopyDsuIp, CopyDsuPort,
         Startup, Notifications, Language,
         OpenLog, Exit,
         EnableDevice,

@@ -115,6 +115,25 @@ constexpr int kA11yStatus = 100;
 constexpr int kA11yBanner = 101;
 constexpr int kA11yModes  = 102;
 
+static void CopyTextToClipboard(HWND hwnd, const std::wstring& text) {
+    if (OpenClipboard(hwnd)) {
+        EmptyClipboard();
+        const size_t bytes = (text.size() + 1) * sizeof(wchar_t);
+        HGLOBAL hGlob = GlobalAlloc(GMEM_MOVEABLE, bytes);
+        if (hGlob) {
+            void* p = GlobalLock(hGlob);
+            if (p) {
+                memcpy(p, text.c_str(), bytes);
+                GlobalUnlock(hGlob);
+                SetClipboardData(CF_UNICODETEXT, hGlob);
+            } else {
+                GlobalFree(hGlob);
+            }
+        }
+        CloseClipboard();
+    }
+}
+
 // Stable names for each control, for tools that find an element by id rather than
 // by what it is called, which can change.
 const wchar_t* AutomationId(Action a) {
@@ -128,6 +147,8 @@ const wchar_t* AutomationId(Action a) {
     case Action::PlatformPS:     return L"Platform.PS4";
     case Action::PlatformPS5:    return L"Platform.PS5";
     case Action::PlatformSwitch: return L"Platform.Switch";
+    case Action::CopyDsuIp:      return L"Dsu.Ip";
+    case Action::CopyDsuPort:    return L"Dsu.Port";
     case Action::Customize:      return L"CustomizeControls";
     case Action::Startup:        return L"StartWithWindows";
     case Action::Notifications:  return L"ShowNotifications";
@@ -167,6 +188,12 @@ struct Layout {
     D2D1_RECT_F platLabel{};
     D2D1_RECT_F platTrack{};
     D2D1_RECT_F platSeg[4]{};
+
+    // DSU Server quick-copy
+    D2D1_RECT_F dsuLabel{};
+    D2D1_RECT_F dsuIpBtn{};
+    D2D1_RECT_F dsuColon{};
+    D2D1_RECT_F dsuPortBtn{};
 
     // Customize controls (second below div1)
     D2D1_RECT_F customize{};
@@ -213,6 +240,8 @@ struct TrayPanel::Impl : PanelAccessibility::Host {
     Layout           lay;
     std::vector<Hit> hits;
     int   hover = -1, focus = -1;
+    ULONGLONG copyIpTick = 0;
+    ULONGLONG copyPortTick = 0;
     // Whether the focus is drawn. Focus can exist without being shown: with an
     // assistive technology running it starts on the first control, so there is a
     // place to start reading from, but a mouse user is not shown a ring they never
@@ -596,6 +625,23 @@ struct TrayPanel::Impl : PanelAccessibility::Host {
         }
         y += 44.f;
 
+        // DSU Server (Cemuhook) quick-copy buttons: placed right below target platform
+        lo.dsuLabel = D2D1::RectF(kPad, y, kWidth - kPad, y + 14.f);
+        y += 18.f;
+
+        const float dsuTotalW = (kWidth - 2.f * kPad);
+        const float colonW = 12.f;
+        const float gap = 6.f;
+        const float btnW = (dsuTotalW - colonW - (gap * 2.f)) * 0.5f;
+
+        lo.dsuIpBtn   = D2D1::RectF(kPad, y, kPad + btnW, y + 28.f);
+        lo.dsuColon   = D2D1::RectF(lo.dsuIpBtn.right + gap, y, lo.dsuIpBtn.right + gap + colonW, y + 28.f);
+        lo.dsuPortBtn = D2D1::RectF(lo.dsuColon.right + gap, y, lo.dsuColon.right + gap + btnW, y + 28.f);
+
+        AddHit(lo.dsuIpBtn, Action::CopyDsuIp, true, 6.f);
+        AddHit(lo.dsuPortBtn, Action::CopyDsuPort, true, 6.f);
+        y += 36.f;
+
         // Customize controls row: placed right below target platform
         lo.customize = D2D1::RectF(8.f, y, kWidth - 8.f, y + 56.f);
         AddHit(lo.customize, Action::Customize, true, 11.f);
@@ -839,6 +885,37 @@ struct TrayPanel::Impl : PanelAccessibility::Host {
                  false, DWRITE_TEXT_ALIGNMENT_CENTER);
         }
 
+        // DSU Server (Cemuhook): header and IP / Port buttons
+        Text(I18n::Text(TextId::DsuServer), lo.dsuLabel, 10.5f, DWRITE_FONT_WEIGHT_SEMI_BOLD, kText3, 1.f, true,
+             DWRITE_TEXT_ALIGNMENT_LEADING, 1.4f);
+
+        // IP Button
+        {
+            const int idxIp = HitIndexFor(Action::CopyDsuIp);
+            const bool hotIp = (idxIp >= 0 && (idxIp == hover || (focusVisible && idxIp == focus)));
+            const bool copiedIp = (GetTickCount64() - copyIpTick < 1500);
+            Fill(lo.dsuIpBtn, 6.f, copiedIp ? 0x22c55e : kInset, copiedIp ? 0.20f : (hotIp ? 1.f : 0.85f));
+            Outline(lo.dsuIpBtn, 6.f, copiedIp ? 0x22c55e : (hotIp ? kAccent : kBorder), copiedIp ? 0.8f : (hotIp ? 0.5f : 0.25f));
+            Text(copiedIp ? I18n::Text(TextId::Copied) : L"127.0.0.1", lo.dsuIpBtn, 12.f,
+                 DWRITE_FONT_WEIGHT_MEDIUM, copiedIp ? 0x22c55e : (hotIp ? 0xffffff : kText), 1.f, true,
+                 DWRITE_TEXT_ALIGNMENT_CENTER);
+        }
+
+        // Colon separator
+        Text(L":", lo.dsuColon, 13.f, DWRITE_FONT_WEIGHT_BOLD, kText3, 1.f, true, DWRITE_TEXT_ALIGNMENT_CENTER);
+
+        // Port Button
+        {
+            const int idxPort = HitIndexFor(Action::CopyDsuPort);
+            const bool hotPort = (idxPort >= 0 && (idxPort == hover || (focusVisible && idxPort == focus)));
+            const bool copiedPort = (GetTickCount64() - copyPortTick < 1500);
+            Fill(lo.dsuPortBtn, 6.f, copiedPort ? 0x22c55e : kInset, copiedPort ? 0.20f : (hotPort ? 1.f : 0.85f));
+            Outline(lo.dsuPortBtn, 6.f, copiedPort ? 0x22c55e : (hotPort ? kAccent : kBorder), copiedPort ? 0.8f : (hotPort ? 0.5f : 0.25f));
+            Text(copiedPort ? I18n::Text(TextId::Copied) : L"26760", lo.dsuPortBtn, 12.f,
+                 DWRITE_FONT_WEIGHT_MEDIUM, copiedPort ? 0x22c55e : (hotPort ? 0xffffff : kText), 1.f, true,
+                 DWRITE_TEXT_ALIGNMENT_CENTER);
+        }
+
         // Customize Controls: placed right below Target Platform
         {
             const int ci = HitIndexFor(Action::Customize);
@@ -944,6 +1021,19 @@ struct TrayPanel::Impl : PanelAccessibility::Host {
         if (IsModeAction(a) && IsActive(hits[i])) return;
         if (IsPlatformAction(a) && IsPlatformActive(hits[i])) return;
         if (model.switching && IsPlatformAction(a)) return;
+
+        if (a == Action::CopyDsuIp) {
+            CopyTextToClipboard(hwnd, L"127.0.0.1");
+            copyIpTick = GetTickCount64();
+            InvalidateRect(hwnd, nullptr, FALSE);
+            return;
+        }
+        if (a == Action::CopyDsuPort) {
+            CopyTextToClipboard(hwnd, L"26760");
+            copyPortTick = GetTickCount64();
+            InvalidateRect(hwnd, nullptr, FALSE);
+            return;
+        }
 
         // Copied first: closing the panel is not allowed to take the handler
         // with it, and what the action opens should not be fighting a panel
