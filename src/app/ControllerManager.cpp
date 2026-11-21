@@ -813,6 +813,9 @@ void ControllerManager::SetProfile(const ControllerProfile& profile) {
             bool allOk = true;
             for (auto& slot : m_slots) {
                 if (!slot->gameModeActive) continue;
+                if (slot->sc && slot->sc->IsOpen()) {
+                    slot->sc->SetImuEnabled(true);
+                }
                 slot->vc = std::make_unique<VirtualController>(
                     m_profile.platform,
                     [this, sc = slot->sc.get()](uint8_t largeMotor, uint8_t smallMotor) {
@@ -1334,8 +1337,11 @@ ControllerManager::EnableGameModeSlot(Slot& slot, bool& padUnavailableOut, bool 
     // has since had the driver installed.
     m_lastPadDriverMissing = false;
 
-    if (m_profile.platform == ControllerPlatform::PlayStation)
+    // Enable IMU across all emulated platforms (Switch, Xbox, PS4, PS5)
+    // so Cemuhook DSU server (127.0.0.1:26760) and native gyro always receive motion data.
+    if (slot.sc && slot.sc->IsOpen()) {
         slot.sc->SetImuEnabled(true);
+    }
 
     EventLog::Write("GAMEMODE: enabled %ls", slot.path.c_str());
     // Takeover is the moment users report the trackpad arriving dead, and what
